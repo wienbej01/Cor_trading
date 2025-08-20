@@ -1,0 +1,91 @@
+# FX-Commodity correlation arbitrage pair configurations
+
+usdcad_wti:
+  # Symbol definitions
+  fx_symbol: "USDCAD=X"
+  comd_symbol: "CL=F"  # WTI Crude Oil Futures
+  inverse_fx_for_quote_ccy_strength: true  # Inverse USD/CAD for CAD strength
+  
+  # Lookback windows
+  lookbacks:
+    beta_window: 90      # Window for hedge ratio calculation
+    z_window: 40         # Window for z-score calculation
+    corr_window: 20      # Window for correlation calculation
+  
+  # Trading thresholds
+  thresholds:
+    entry_z: 1.5         # Z-score threshold for entry
+    exit_z: 0.3          # Z-score threshold for exit
+    stop_z: 3.5          # Z-score threshold for stop loss
+  
+  # Time stop
+  time_stop:
+    max_days: 20         # Maximum days to hold a position
+  
+  # Regime filter
+  regime:
+    min_abs_corr: 0.25   # Minimum absolute correlation for trading
+    volatility_window: 20 # Window for volatility regime detection
+    high_vol_threshold: 0.02  # High volatility threshold
+    low_vol_threshold: 0.005   # Low volatility threshold
+    filter_extreme_vol: true   # Filter extreme volatility regimes
+    trend_window: 20      # Window for trend regime detection
+    trend_threshold: 0.01 # Trend threshold
+    filter_strong_trend: true  # Filter strong trending regimes
+  
+  # Position sizing
+  sizing:
+    atr_window: 20        # Window for ATR calculation
+    target_vol_per_leg: 0.01  # Target volatility per leg (1%)
+  
+  # Advanced options
+  use_kalman: true       # Use Kalman filter for dynamic beta
+  
+  # Event calendar (optional)
+  calendar:
+    event_blackouts: []  # List of event types to blacklist
+
+usdnok_brent:
+  # Symbol definitions
+  fx_symbol: "USDNOK=X"
+  comd_symbol: "BZ=F"  # Brent Crude Oil Futures
+  inverse_fx_for_quote_ccy_strength: true  # Inverse USD/NOK for NOK strength
+  
+  # Lookback windows
+  lookbacks:
+    beta_window: 90      # Window for hedge ratio calculation
+    z_window: 40         # Window for z-score calculation
+    corr_window: 20      # Window for correlation calculation
+  
+  # Trading thresholds
+  thresholds:
+    entry_z: 1.5         # Z-score threshold for entry
+    exit_z: 0.3          # Z-score threshold for exit
+    stop_z: 3.5          # Z-score threshold for stop loss
+  
+  # Time stop
+  time_stop:
+    max_days: 20         # Maximum days to hold a position
+  
+  # Regime filter
+  regime:
+    min_abs_corr: 0.25   # Minimum absolute correlation for trading
+    volatility_window: 20 # Window for volatility regime detection
+    high_vol_threshold: 0.02  # High volatility threshold
+    low_vol_threshold: 0.005   # Low volatility threshold
+    filter_extreme_vol: true   # Filter extreme volatility regimes
+    trend_window: 20      # Window for trend regime detection
+    trend_threshold: 0.01 # Trend threshold
+    filter_strong_trend: true  # Filter strong trending regimes
+  
+  # Position sizing
+  sizing:
+    atr_window: 20        # Window for ATR calculation
+    target_vol_per_leg: 0.01  # Target volatility per leg (1%)
+  
+  # Advanced options
+  use_kalman: true       # Use Kalman filter for dynamic beta
+  
+  # Event calendar (optional)
+  calendar:
+    event_blackouts: []  # List of event types to blacklist
