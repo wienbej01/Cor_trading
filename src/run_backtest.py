@@ -8,6 +8,11 @@ import click
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
+import sys
+import os
+
+# Add the project root to the Python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.core.config import config
 from src.data.yahoo_loader import download_and_align_pair

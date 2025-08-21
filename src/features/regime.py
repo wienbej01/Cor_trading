@@ -16,7 +16,7 @@ def correlation_gate(
     series_a: pd.Series, 
     series_b: pd.Series, 
     corr_window: int = 60,
-    min_abs_corr: float = 0.3
+    min_abs_corr: float = 0.15  # Reduced from 0.3 to 0.15 to allow more signals
 ) -> pd.Series:
     """
     Apply correlation gate to filter signals based on rolling correlation.
@@ -50,7 +50,7 @@ def correlation_gate(
     # Check if absolute correlation exceeds threshold
     valid_signals = correlation.abs() >= min_abs_corr
     
-    logger.info(f"Correlation gate: {valid_signals.sum()}/{len(valid_signals)} signals pass threshold")
+    logger.info(f"Correlation gate: {valid_signals.sum()}/{len(valid_signals)} signals pass threshold ({valid_signals.mean()*100:.2f}%)")
     
     return valid_signals
 
@@ -59,7 +59,7 @@ def dcc_garch_filter(
     returns_a: pd.Series,
     returns_b: pd.Series,
     window: int = 60,
-    corr_threshold: float = 0.3
+    corr_threshold: float = 0.15  # Reduced from 0.3 to 0.15
 ) -> pd.Series:
     """
     Apply DCC-GARCH filter for dynamic correlation estimation (placeholder implementation).
@@ -91,7 +91,7 @@ def dcc_garch_filter(
     # Check if correlation exceeds threshold
     valid_signals = correlation.abs() >= corr_threshold
     
-    logger.info(f"DCC-GARCH filter (placeholder): {valid_signals.sum()}/{len(valid_signals)} signals pass threshold")
+    logger.info(f"DCC-GARCH filter (placeholder): {valid_signals.sum()}/{len(valid_signals)} signals pass threshold ({valid_signals.mean()*100:.2f}%)")
     
     return valid_signals
 
@@ -99,8 +99,8 @@ def dcc_garch_filter(
 def volatility_regime(
     series: pd.Series,
     window: int = 20,
-    high_vol_threshold: float = 0.02,
-    low_vol_threshold: float = 0.005
+    high_vol_threshold: float = 0.03,  # Increased from 0.02 to 0.03 to be less restrictive
+    low_vol_threshold: float = 0.003   # Decreased from 0.005 to 0.003 to be less restrictive
 ) -> pd.Series:
     """
     Detect volatility regime of a series.
@@ -146,7 +146,7 @@ def volatility_regime(
 def trend_regime(
     series: pd.Series,
     window: int = 20,
-    trend_threshold: float = 0.01
+    trend_threshold: float = 0.015  # Increased from 0.01 to 0.015 to be less restrictive
 ) -> pd.Series:
     """
     Detect trend regime of a series.
@@ -216,37 +216,41 @@ def combined_regime_filter(
     # Initialize with all signals valid
     valid_signals = pd.Series(True, index=fx_series.index)
     
-    # Apply correlation gate
+    # Apply correlation gate with relaxed threshold
     corr_gate = correlation_gate(fx_series, comd_series, corr_window, min_abs_corr)
     valid_signals = valid_signals & corr_gate
     
-    # Apply volatility regime filter (optional)
+    # Apply volatility regime filter (optional) - made less restrictive
     if "volatility_window" in config.get("regime", {}):
         vol_window = config["regime"]["volatility_window"]
-        high_vol_threshold = config["regime"].get("high_vol_threshold", 0.02)
-        low_vol_threshold = config["regime"].get("low_vol_threshold", 0.005)
+        # Use less restrictive thresholds if not specified in config
+        high_vol_threshold = config["regime"].get("high_vol_threshold", 0.03)
+        low_vol_threshold = config["regime"].get("low_vol_threshold", 0.003)
         
         fx_vol_regime = volatility_regime(fx_series, vol_window, high_vol_threshold, low_vol_threshold)
         comd_vol_regime = volatility_regime(comd_series, vol_window, high_vol_threshold, low_vol_threshold)
         
-        # Filter out extreme volatility regimes (optional)
+        # Filter out extreme volatility regimes (optional) - made less restrictive
         if config["regime"].get("filter_extreme_vol", False):
+            # Only filter out extreme high volatility, allow normal and low volatility
             vol_filter = (fx_vol_regime != 2) & (comd_vol_regime != 2)
             valid_signals = valid_signals & vol_filter
     
-    # Apply trend regime filter (optional)
+    # Apply trend regime filter (optional) - made less restrictive
     if "trend_window" in config.get("regime", {}):
         trend_window = config["regime"]["trend_window"]
-        trend_threshold = config["regime"].get("trend_threshold", 0.01)
+        # Use less restrictive threshold if not specified in config
+        trend_threshold = config["regime"].get("trend_threshold", 0.015)
         
         fx_trend_regime = trend_regime(fx_series, trend_window, trend_threshold)
         comd_trend_regime = trend_regime(comd_series, trend_window, trend_threshold)
         
-        # Filter out strong trending regimes (optional)
+        # Filter out strong trending regimes (optional) - made less restrictive
         if config["regime"].get("filter_strong_trend", False):
-            trend_filter = (fx_trend_regime.abs() != 1) & (comd_trend_regime.abs() != 1)
+            # Only filter out extreme trends, allow moderate trends
+            trend_filter = (fx_trend_regime.abs() <= 1) & (comd_trend_regime.abs() <= 1)
             valid_signals = valid_signals & trend_filter
     
-    logger.info(f"Combined regime filter: {valid_signals.sum()}/{len(valid_signals)} signals pass all filters")
+    logger.info(f"Combined regime filter: {valid_signals.sum()}/{len(valid_signals)} signals pass all filters ({valid_signals.mean()*100:.2f}%)")
     
     return valid_signals

@@ -4,6 +4,7 @@ usdcad_wti:
   # Symbol definitions
   fx_symbol: "USDCAD=X"
   comd_symbol: "CL=F"  # WTI Crude Oil Futures
+  comd: "WTI"  # Commodity identifier
   inverse_fx_for_quote_ccy_strength: true  # Inverse USD/CAD for CAD strength
   
   # Lookback windows
@@ -11,20 +12,24 @@ usdcad_wti:
     beta_window: 90      # Window for hedge ratio calculation
     z_window: 40         # Window for z-score calculation
     corr_window: 20      # Window for correlation calculation
+    lookback: 252        # Lookback period for calculations
+    vol_window: 20       # Volatility calculation window
   
   # Trading thresholds
   thresholds:
-    entry_z: 1.5         # Z-score threshold for entry
-    exit_z: 0.3          # Z-score threshold for exit
+    entry_z: 1.0         # Relaxed Z-score threshold for entry (was 1.5)
+    exit_z: 0.5          # Relaxed Z-score threshold for exit (was 0.3)
     stop_z: 3.5          # Z-score threshold for stop loss
+    adf_p: 0.05          # ADF test p-value threshold
+    min_abs_corr: 0.3    # Minimum absolute correlation threshold
   
   # Time stop
   time_stop:
-    max_days: 20         # Maximum days to hold a position
+    max_days: 10         # Maximum days to hold a position (reduced from 20)
   
   # Regime filter
   regime:
-    min_abs_corr: 0.25   # Minimum absolute correlation for trading
+    min_abs_corr: 0.15   # Relaxed minimum absolute correlation for trading
     volatility_window: 20 # Window for volatility regime detection
     high_vol_threshold: 0.02  # High volatility threshold
     low_vol_threshold: 0.005   # Low volatility threshold
@@ -37,6 +42,8 @@ usdcad_wti:
   sizing:
     atr_window: 20        # Window for ATR calculation
     target_vol_per_leg: 0.01  # Target volatility per leg (1%)
+    profit_target: 2.0    # 2x ATR for profit targets
+    stop_loss: 1.5        # 1.5x ATR for stop losses
   
   # Advanced options
   use_kalman: true       # Use Kalman filter for dynamic beta
@@ -49,6 +56,7 @@ usdnok_brent:
   # Symbol definitions
   fx_symbol: "USDNOK=X"
   comd_symbol: "BZ=F"  # Brent Crude Oil Futures
+  comd: "BRENT"  # Commodity identifier
   inverse_fx_for_quote_ccy_strength: true  # Inverse USD/NOK for NOK strength
   
   # Lookback windows
@@ -56,20 +64,24 @@ usdnok_brent:
     beta_window: 90      # Window for hedge ratio calculation
     z_window: 40         # Window for z-score calculation
     corr_window: 20      # Window for correlation calculation
+    lookback: 252        # Lookback period for calculations
+    vol_window: 20       # Volatility calculation window
   
   # Trading thresholds
   thresholds:
-    entry_z: 1.5         # Z-score threshold for entry
-    exit_z: 0.3          # Z-score threshold for exit
+    entry_z: 1.0         # Relaxed Z-score threshold for entry (was 1.5)
+    exit_z: 0.5          # Relaxed Z-score threshold for exit (was 0.3)
     stop_z: 3.5          # Z-score threshold for stop loss
+    adf_p: 0.05          # ADF test p-value threshold
+    min_abs_corr: 0.3    # Minimum absolute correlation threshold
   
   # Time stop
   time_stop:
-    max_days: 20         # Maximum days to hold a position
+    max_days: 10         # Maximum days to hold a position (reduced from 20)
   
   # Regime filter
   regime:
-    min_abs_corr: 0.25   # Minimum absolute correlation for trading
+    min_abs_corr: 0.15   # Relaxed minimum absolute correlation for trading
     volatility_window: 20 # Window for volatility regime detection
     high_vol_threshold: 0.02  # High volatility threshold
     low_vol_threshold: 0.005   # Low volatility threshold
@@ -82,6 +94,8 @@ usdnok_brent:
   sizing:
     atr_window: 20        # Window for ATR calculation
     target_vol_per_leg: 0.01  # Target volatility per leg (1%)
+    profit_target: 2.0    # 2x ATR for profit targets
+    stop_loss: 1.5        # 1.5x ATR for stop losses
   
   # Advanced options
   use_kalman: true       # Use Kalman filter for dynamic beta

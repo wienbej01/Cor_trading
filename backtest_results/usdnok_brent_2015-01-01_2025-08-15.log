@@ -61,3 +61,92 @@
 2025-08-20 12:04:51 | INFO     | src.backtest.engine:calculate_performance_metrics:349 | Performance metrics: Sharpe=0.00, Return=nan%, MaxDD=0.00%, WinRate=0.00%
 2025-08-20 12:04:51 | INFO     | __main__:run_backtest_cli:175 | Saved report to backtest_results/usdnok_brent_report_20250820_120451.txt
 2025-08-20 12:04:51 | INFO     | __main__:run_backtest_cli:193 | Backtest completed successfully
+2025-08-21 11:22:42 | INFO     | src.utils.logging:setup_logging:64 | Logging configured with level: INFO
+2025-08-21 11:22:42 | INFO     | __main__:run_backtest_cli:92 | Starting backtest for pair: usdnok_brent
+2025-08-21 11:22:42 | INFO     | __main__:run_backtest_cli:93 | Backtest period: 2015-01-01 to 2025-08-15
+2025-08-21 11:22:42 | INFO     | src.core.config:load_pairs_config:48 | Loading pairs configuration from /home/jacobw/Cor_trading/configs/pairs.yaml
+2025-08-21 11:22:42 | INFO     | src.core.config:load_pairs_config:53 | Loaded configuration for 2 pairs
+2025-08-21 11:22:42 | INFO     | __main__:run_backtest_cli:108 | Loaded configuration for usdnok_brent
+2025-08-21 11:22:42 | INFO     | __main__:run_backtest_cli:111 | Downloading market data
+2025-08-21 11:22:42 | INFO     | src.data.yahoo_loader:download_and_align_pair:204 | Starting pair download: USDNOK=X vs BZ=F
+2025-08-21 11:22:42 | INFO     | src.data.yahoo_loader:download_and_align_pair:205 | Date range: 2015-01-01 to 2025-08-15
+2025-08-21 11:22:42 | INFO     | src.data.yahoo_loader:download_and_align_pair:226 | Downloading FX data: USDNOK=X
+2025-08-21 11:22:42 | INFO     | src.data.yahoo_loader:download_daily:49 | Starting download for symbol: USDNOK=X, date range: 2015-01-01 to 2025-08-15
+2025-08-21 11:22:43 | INFO     | src.data.yahoo_loader:download_daily:83 | Downloaded 2765 data points for USDNOK=X
+2025-08-21 11:22:43 | SUCCESS  | src.data.yahoo_loader:download_daily:101 | Successfully downloaded data for USDNOK=X
+2025-08-21 11:22:43 | INFO     | src.data.yahoo_loader:download_and_align_pair:230 | Downloading commodity data: BZ=F
+2025-08-21 11:22:43 | INFO     | src.data.yahoo_loader:download_daily:49 | Starting download for symbol: BZ=F, date range: 2015-01-01 to 2025-08-15
+2025-08-21 11:22:43 | INFO     | src.data.yahoo_loader:download_daily:83 | Downloaded 2671 data points for BZ=F
+2025-08-21 11:22:43 | SUCCESS  | src.data.yahoo_loader:download_daily:101 | Successfully downloaded data for BZ=F
+2025-08-21 11:22:43 | INFO     | src.data.yahoo_loader:download_and_align_pair:235 | FX data: 2765 points from 2015-01-01 00:00:00 to 2025-08-14 00:00:00
+2025-08-21 11:22:43 | INFO     | src.data.yahoo_loader:download_and_align_pair:236 | Commodity data: 2671 points from 2015-01-02 00:00:00 to 2025-08-14 00:00:00
+2025-08-21 11:22:43 | INFO     | src.data.yahoo_loader:align_series:132 | Aligning series: fx (2765 points) and comd (2671 points)
+2025-08-21 11:22:43 | INFO     | src.data.yahoo_loader:align_series:164 | Successfully aligned series with 2667 common data points
+2025-08-21 11:22:43 | SUCCESS  | src.data.yahoo_loader:download_and_align_pair:246 | Successfully downloaded and aligned pair
+2025-08-21 11:22:43 | INFO     | src.data.yahoo_loader:download_and_align_pair:247 | Final dataset: 2667 data points
+2025-08-21 11:22:43 | INFO     | src.data.yahoo_loader:download_and_align_pair:248 | Date range: 2015-01-02 00:00:00 to 2025-08-14 00:00:00
+2025-08-21 11:22:43 | INFO     | __main__:run_backtest_cli:121 | Downloaded 2667 data points
+2025-08-21 11:22:43 | INFO     | __main__:run_backtest_cli:124 | Generating trading signals
+2025-08-21 11:22:43 | INFO     | src.strategy.mean_reversion:generate_signals_with_regime_filter:326 | Generating signals with regime filtering
+2025-08-21 11:22:43 | INFO     | src.features.regime:correlation_gate:53 | Correlation gate: 2215/2667 signals pass threshold (83.05%)
+2025-08-21 11:22:43 | INFO     | src.features.regime:combined_regime_filter:254 | Combined regime filter: 1100/2667 signals pass all filters (41.24%)
+2025-08-21 11:22:43 | INFO     | src.strategy.mean_reversion:generate_signals:57 | Generating mean reversion signals
+2025-08-21 11:22:46 | INFO     | src.features.regime:correlation_gate:53 | Correlation gate: 2215/2667 signals pass threshold (83.05%)
+2025-08-21 11:22:47 | INFO     | src.strategy.mean_reversion:generate_signals:191 | Applied regime filter: 333 active signals remaining
+2025-08-21 11:22:47 | INFO     | src.strategy.mean_reversion:generate_signals:203 | Generated 612 entry signals and 307 exit signals
+2025-08-21 11:22:47 | INFO     | __main__:run_backtest_cli:131 | Generated 331 total signals
+2025-08-21 11:22:47 | INFO     | __main__:run_backtest_cli:145 | Running backtest
+2025-08-21 11:22:47 | INFO     | src.backtest.engine:run_backtest:410 | Running complete backtest
+2025-08-21 11:22:47 | INFO     | src.backtest.engine:backtest_pair:79 | Running backtest with one-bar execution delay
+2025-08-21 11:22:48 | INFO     | src.backtest.engine:_calculate_trade_stats:260 | Calculated statistics for 294 trades
+2025-08-21 11:22:48 | INFO     | src.backtest.engine:backtest_pair:179 | Backtest completed: 2667 bars, Final PnL: -0.25, Max drawdown: -425.76%
+2025-08-21 11:22:49 | INFO     | src.backtest.engine:calculate_performance_metrics:349 | Performance metrics: Sharpe=nan, Return=nan%, MaxDD=-425.76%, WinRate=25.51%
+2025-08-21 11:22:49 | INFO     | __main__:run_backtest_cli:159 | Saved signals to backtest_results/usdnok_brent_signals_20250821_112249.csv
+2025-08-21 11:22:49 | INFO     | __main__:run_backtest_cli:163 | Saved backtest results to backtest_results/usdnok_brent_backtest_20250821_112249.csv
+2025-08-21 11:22:49 | INFO     | __main__:run_backtest_cli:180 | Saved report to backtest_results/usdnok_brent_report_20250821_112249.txt
+2025-08-21 11:22:49 | INFO     | __main__:run_backtest_cli:198 | Backtest completed successfully
+2025-08-21 11:23:17 | INFO     | src.utils.logging:setup_logging:64 | Logging configured with level: INFO
+2025-08-21 11:23:17 | INFO     | __main__:run_backtest_cli:92 | Starting backtest for pair: usdnok_brent
+2025-08-21 11:23:17 | INFO     | __main__:run_backtest_cli:93 | Backtest period: 2015-01-01 to 2025-08-15
+2025-08-21 11:23:17 | INFO     | src.core.config:load_pairs_config:48 | Loading pairs configuration from /home/jacobw/Cor_trading/configs/pairs.yaml
+2025-08-21 11:23:17 | INFO     | src.core.config:load_pairs_config:53 | Loaded configuration for 2 pairs
+2025-08-21 11:23:17 | INFO     | __main__:run_backtest_cli:106 | Using OLS instead of Kalman filter
+2025-08-21 11:23:17 | INFO     | __main__:run_backtest_cli:108 | Loaded configuration for usdnok_brent
+2025-08-21 11:23:17 | INFO     | __main__:run_backtest_cli:111 | Downloading market data
+2025-08-21 11:23:17 | INFO     | src.data.yahoo_loader:download_and_align_pair:204 | Starting pair download: USDNOK=X vs BZ=F
+2025-08-21 11:23:17 | INFO     | src.data.yahoo_loader:download_and_align_pair:205 | Date range: 2015-01-01 to 2025-08-15
+2025-08-21 11:23:17 | INFO     | src.data.yahoo_loader:download_and_align_pair:226 | Downloading FX data: USDNOK=X
+2025-08-21 11:23:17 | INFO     | src.data.yahoo_loader:download_daily:49 | Starting download for symbol: USDNOK=X, date range: 2015-01-01 to 2025-08-15
+2025-08-21 11:23:19 | INFO     | src.data.yahoo_loader:download_daily:83 | Downloaded 2765 data points for USDNOK=X
+2025-08-21 11:23:19 | SUCCESS  | src.data.yahoo_loader:download_daily:101 | Successfully downloaded data for USDNOK=X
+2025-08-21 11:23:19 | INFO     | src.data.yahoo_loader:download_and_align_pair:230 | Downloading commodity data: BZ=F
+2025-08-21 11:23:19 | INFO     | src.data.yahoo_loader:download_daily:49 | Starting download for symbol: BZ=F, date range: 2015-01-01 to 2025-08-15
+2025-08-21 11:23:19 | INFO     | src.data.yahoo_loader:download_daily:83 | Downloaded 2671 data points for BZ=F
+2025-08-21 11:23:19 | SUCCESS  | src.data.yahoo_loader:download_daily:101 | Successfully downloaded data for BZ=F
+2025-08-21 11:23:19 | INFO     | src.data.yahoo_loader:download_and_align_pair:235 | FX data: 2765 points from 2015-01-01 00:00:00 to 2025-08-14 00:00:00
+2025-08-21 11:23:19 | INFO     | src.data.yahoo_loader:download_and_align_pair:236 | Commodity data: 2671 points from 2015-01-02 00:00:00 to 2025-08-14 00:00:00
+2025-08-21 11:23:19 | INFO     | src.data.yahoo_loader:align_series:132 | Aligning series: fx (2765 points) and comd (2671 points)
+2025-08-21 11:23:19 | INFO     | src.data.yahoo_loader:align_series:164 | Successfully aligned series with 2667 common data points
+2025-08-21 11:23:19 | SUCCESS  | src.data.yahoo_loader:download_and_align_pair:246 | Successfully downloaded and aligned pair
+2025-08-21 11:23:19 | INFO     | src.data.yahoo_loader:download_and_align_pair:247 | Final dataset: 2667 data points
+2025-08-21 11:23:19 | INFO     | src.data.yahoo_loader:download_and_align_pair:248 | Date range: 2015-01-02 00:00:00 to 2025-08-14 00:00:00
+2025-08-21 11:23:19 | INFO     | __main__:run_backtest_cli:121 | Downloaded 2667 data points
+2025-08-21 11:23:19 | INFO     | __main__:run_backtest_cli:124 | Generating trading signals
+2025-08-21 11:23:19 | INFO     | src.strategy.mean_reversion:generate_signals_with_regime_filter:326 | Generating signals with regime filtering
+2025-08-21 11:23:19 | INFO     | src.features.regime:correlation_gate:53 | Correlation gate: 2215/2667 signals pass threshold (83.05%)
+2025-08-21 11:23:19 | INFO     | src.features.regime:combined_regime_filter:254 | Combined regime filter: 1100/2667 signals pass all filters (41.24%)
+2025-08-21 11:23:19 | INFO     | src.strategy.mean_reversion:generate_signals:57 | Generating mean reversion signals
+2025-08-21 11:23:24 | INFO     | src.features.regime:correlation_gate:53 | Correlation gate: 2215/2667 signals pass threshold (83.05%)
+2025-08-21 11:23:25 | INFO     | src.strategy.mean_reversion:generate_signals:191 | Applied regime filter: 289 active signals remaining
+2025-08-21 11:23:25 | INFO     | src.strategy.mean_reversion:generate_signals:203 | Generated 520 entry signals and 261 exit signals
+2025-08-21 11:23:25 | INFO     | __main__:run_backtest_cli:131 | Generated 287 total signals
+2025-08-21 11:23:25 | INFO     | __main__:run_backtest_cli:145 | Running backtest
+2025-08-21 11:23:25 | INFO     | src.backtest.engine:run_backtest:410 | Running complete backtest
+2025-08-21 11:23:25 | INFO     | src.backtest.engine:backtest_pair:79 | Running backtest with one-bar execution delay
+2025-08-21 11:23:26 | INFO     | src.backtest.engine:_calculate_trade_stats:260 | Calculated statistics for 269 trades
+2025-08-21 11:23:26 | INFO     | src.backtest.engine:backtest_pair:179 | Backtest completed: 2667 bars, Final PnL: -0.03, Max drawdown: -844.29%
+2025-08-21 11:23:27 | INFO     | src.backtest.engine:calculate_performance_metrics:349 | Performance metrics: Sharpe=nan, Return=nan%, MaxDD=-844.29%, WinRate=21.93%
+2025-08-21 11:23:27 | INFO     | __main__:run_backtest_cli:159 | Saved signals to backtest_results/usdnok_brent_signals_20250821_112327.csv
+2025-08-21 11:23:28 | INFO     | __main__:run_backtest_cli:163 | Saved backtest results to backtest_results/usdnok_brent_backtest_20250821_112327.csv
+2025-08-21 11:23:28 | INFO     | __main__:run_backtest_cli:180 | Saved report to backtest_results/usdnok_brent_report_20250821_112327.txt
+2025-08-21 11:23:28 | INFO     | __main__:run_backtest_cli:198 | Backtest completed successfully

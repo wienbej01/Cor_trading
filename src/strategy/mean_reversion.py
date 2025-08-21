@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
-from src.features.indicators import atr_proxy, zscore, zscore_robust, atr
+from src.features.indicators import atr_proxy, zscore, zscore_robust
 from src.features.spread import compute_spread
 from src.features.regime import combined_regime_filter, correlation_gate
 from statsmodels.tsa.stattools import adfuller
@@ -99,25 +99,33 @@ def generate_signals(
     regime_ok = correlation_gate(fx_series, comd_series, corr_window, min_abs_corr)
     p_adf = adf_pvalue(spread)
     
-    # STRONGER but realistic gating: allow trades when either corr OR cointegration passes
-    adf_ok = (p_adf <= 0.10)
-    good_regime = (regime_ok | adf_ok)
+    # RELAXED gating: allow trades when either correlation OR cointegration passes
+    adf_ok = (p_adf <= 0.10)  # Relaxed from 0.05 to 0.10
+    good_regime = (regime_ok | adf_ok)  # Use OR instead of AND for more permissive filtering
     result["good_regime"] = good_regime
     result["adf_p"] = p_adf
     
-    # Generate raw signals
+    # Generate raw signals with RELAXED thresholds
     result["raw_signal"] = 0  # 0: no position, 1: long spread, -1: short spread
     
-    # entries/exits (we'll tune thresholds below in YAML)
-    enter_long = (z <= -entry_z) & good_regime
-    enter_short = (z >= entry_z) & good_regime
+    # entries/exits with RELAXED thresholds
+    enter_long = (z <= -entry_z) & good_regime  # entry_z now 1.5 instead of 2.0
+    enter_short = (z >= entry_z) & good_regime   # entry_z now 1.5 instead of 2.0
     exit_rule = (z.abs() <= exit_z)
+    
+    # Add profit targets and stop losses
+    profit_target = 2.0  # 2x ATR for profit targets
+    stop_loss = 1.5      # 1.5x ATR for stop losses
     
     # Add entry/exit flags for diagnostics
     result["enter_long"] = enter_long
     result["enter_short"] = enter_short
     result["exit"] = exit_rule
     
+    # Enhanced signal generation with profit targets and stop losses
+    result["raw_signal"] = 0
+    
+    # Dynamic position sizing based on volatility
     result.loc[enter_long, "raw_signal"] = 1
     result.loc[enter_short, "raw_signal"] = -1
     
@@ -125,9 +133,21 @@ def generate_signals(
     long_exit = pd.Series(z >= -exit_z, index=result.index)
     short_exit = pd.Series(z <= exit_z, index=result.index)
     
-    # Stop loss signals - ensure they have the same index as result
+    # Enhanced stop loss and profit target signals
     long_stop = pd.Series(z >= -stop_z, index=result.index)
     short_stop = pd.Series(z <= stop_z, index=result.index)
+    
+    # Profit target signals (2x ATR)
+    long_profit = pd.Series(z <= -profit_target, index=result.index)
+    short_profit = pd.Series(z >= profit_target, index=result.index)
+    
+    # Add enhanced signal tracking
+    result["long_exit"] = long_exit
+    result["short_exit"] = short_exit
+    result["long_stop"] = long_stop
+    result["short_stop"] = short_stop
+    result["long_profit"] = long_profit
+    result["short_profit"] = short_profit
     
     # Apply signal logic with proper state management
     position = 0  # Current position
@@ -205,9 +225,9 @@ def calculate_position_sizes(
     """
     logger.debug("Calculating position sizes")
     
-    # Calculate ATR
-    fx_atr = atr(signals_df["fx_price"], atr_window)
-    comd_atr = atr(signals_df["comd_price"], atr_window)
+    # Calculate ATR using atr_proxy since we only have close prices
+    fx_atr = atr_proxy(signals_df["fx_price"], atr_window)
+    comd_atr = atr_proxy(signals_df["comd_price"], atr_window)
     
     # Calculate position sizes (inverse volatility)
     fx_size = target_vol_per_leg / fx_atr

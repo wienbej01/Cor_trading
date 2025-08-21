@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from loguru import logger
 
 def _ensure_clean(y: pd.Series, x: pd.Series):
     df = pd.concat([y, x], axis=1).dropna()
@@ -49,20 +50,102 @@ def compute_spread(y: pd.Series, x: pd.Series, beta_window: int, use_kalman: boo
     Estimate alpha,beta (RLS when use_kalman=True else OLS) in LOG domain for stability,
     then compute a LEVEL-domain spread: S = y - exp(alpha_log) * x**beta.
     """
-    y_log = np.log(y).replace([np.inf, -np.inf], np.nan)
-    x_log = np.log(x).replace([np.inf, -np.inf], np.nan)
-    y_log, x_log = _ensure_clean(y_log, x_log)
-
+    # Create copies to avoid modifying original series
+    y = y.copy()
+    x = x.copy()
+    
+    # Handle NaN and infinite values
+    y = y.replace([np.inf, -np.inf], np.nan)
+    x = x.replace([np.inf, -np.inf], np.nan)
+    
+    # Drop NaN values
+    mask = ~(np.isnan(y) | np.isnan(x))
+    y_clean = y[mask]
+    x_clean = x[mask]
+    
+    # Check if we have enough data after cleaning
+    if len(y_clean) < max(beta_window, 10):
+        logger.warning(f"Insufficient clean data: {len(y_clean)} < {max(beta_window, 10)}, using OLS fallback")
+        return compute_spread(y, x, beta_window, use_kalman=False)
+    
+    # Convert to log domain
+    y_log = np.log(y_clean).replace([np.inf, -np.inf], np.nan)
+    x_log = np.log(x_clean).replace([np.inf, -np.inf], np.nan)
+    
+    # Drop any NaN values that resulted from log transformation
+    mask_log = ~(np.isnan(y_log) | np.isnan(x_log))
+    y_log = y_log[mask_log]
+    x_log = x_log[mask_log]
+    
+    # Check if we have enough data after log transformation
+    if len(y_log) < max(beta_window, 10):
+        logger.warning(f"Insufficient data after log transform: {len(y_log)} < {max(beta_window, 10)}, using OLS fallback")
+        return compute_spread(y, x, beta_window, use_kalman=False)
+    
+    # Add small epsilon to prevent division by zero
+    epsilon = 1e-8
+    
+    # Check for near-zero values
+    if np.any(np.abs(x_log) < epsilon):
+        logger.warning("Near-zero values in x_log, adding epsilon")
+        x_log = x_log.copy()
+        x_log[np.abs(x_log) < epsilon] = epsilon
+    
+    # Initialize alpha and beta variables
+    alpha = None
+    beta = None
+    
+    # Use Kalman filter (RLS) if requested and we have enough data
     if use_kalman:
-        # use RLS on logs
-        alpha_log, beta = rls_beta(y_log, x_log, lam=0.995, delta=100.0)
+        try:
+            # Check for numerical stability
+            y_std = np.std(y_log)
+            x_std = np.std(x_log)
+            if y_std < epsilon or x_std < epsilon:
+                logger.warning(f"Low volatility detected: y_std={y_std}, x_std={x_std}, using OLS fallback")
+                return compute_spread(y, x, beta_window, use_kalman=False)
+            
+            # Use RLS (Kalman filter) on logs
+            alpha_log, beta = rls_beta(y_log, x_log, lam=0.995, delta=100.0)
+            
+            # Check for valid results
+            if alpha_log.isna().all() or beta.isna().all():
+                logger.warning("RLS produced all NaN values, using OLS fallback")
+                return compute_spread(y, x, beta_window, use_kalman=False)
+                
+            # Convert alpha from log domain
+            alpha = alpha_log.apply(np.exp)  # multiplicative intercept
+            
+        except Exception as e:
+            logger.warning(f"Kalman filter error: {e}, using OLS fallback")
+            return compute_spread(y, x, beta_window, use_kalman=False)
     else:
+        # Use rolling OLS
         alpha_log, beta = rolling_ols_beta(y_log, x_log, beta_window)
-
-    alpha = alpha_log.apply(np.exp)  # multiplicative intercept
-    # Spread in levels to match trading legs
-    S = y - (alpha * (x ** beta))
-    S = S.reindex(y.index).dropna()
+        alpha = alpha_log.apply(np.exp)  # multiplicative intercept
+    
+    # Ensure alpha and beta are valid
+    if alpha is None or beta is None:
+        logger.error("Failed to compute alpha and beta")
+        return pd.Series(index=y.index), pd.Series(index=y.index), pd.Series(index=y.index)
+    
+    # Clip extreme beta values for stability
+    beta = beta.clip(-10, 10)
+    
+    # Ensure alpha is positive
+    alpha = np.maximum(alpha, epsilon)
+    
+    # Compute spread in levels
+    # We need to align the original series with the computed alpha and beta
+    y_aligned = y_clean.reindex(alpha.index)
+    x_aligned = x_clean.reindex(alpha.index)
+    
+    # Calculate spread: S = y - alpha * x^beta
+    S = y_aligned - (alpha * (x_aligned ** beta))
+    
+    # Reindex to original index and forward fill
+    S = S.reindex(y.index).ffill()
     alpha = alpha.reindex(y.index).ffill()
     beta = beta.reindex(y.index).ffill()
+    
     return S, alpha, beta
