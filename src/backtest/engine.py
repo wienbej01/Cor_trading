@@ -146,23 +146,19 @@ def backtest_pair(
     result["total_pnl"] = result["total_pnl"] - cost_fx - cost_cm
     
     # Calculate cumulative PnL
+    result["total_pnl"].fillna(0.0, inplace=True)
     result["cumulative_pnl"] = result["total_pnl"].cumsum()
     
     # Fill NaN values in PnL and calculate equity curve
-    pnl = result["total_pnl"].fillna(0.0)
-    result["pnl"] = pnl
+    result["pnl"] = result["total_pnl"]
     result["equity"] = (1.0 + result["pnl"]).cumprod()
     
-    # Calculate running maximum for drawdown calculation
-    result["running_max"] = result["cumulative_pnl"].cummax()
-    
-    # Calculate drawdown with safe division
-    # Create a mask to avoid division by zero
-    mask = result["running_max"].abs() > 1e-10
-    result["drawdown"] = 0.0  # Default value
-    # Only calculate drawdown where running_max is not zero
-    result.loc[mask, "drawdown"] = (result.loc[mask, "cumulative_pnl"] - result.loc[mask, "running_max"]) / result.loc[mask, "running_max"]
-    result["drawdown"] = result["drawdown"].fillna(0)
+    # Calculate drawdown based on equity
+    running_max_equity = result["equity"].cummax()
+    result["drawdown"] = 0.0
+    non_zero_mask = running_max_equity != 0
+    result.loc[non_zero_mask, "drawdown"] = (result.loc[non_zero_mask, "equity"] - running_max_equity[non_zero_mask]) / running_max_equity[non_zero_mask]
+    result['drawdown'].fillna(0.0, inplace=True)
     
     # Calculate trade statistics
     result = _calculate_trade_stats(result)
@@ -276,7 +272,7 @@ def calculate_performance_metrics(df: pd.DataFrame) -> Dict:
     
     # Basic metrics
     total_pnl = df["total_pnl"].sum()
-    total_return = df["cumulative_pnl"].iloc[-1] / df["cumulative_pnl"].iloc[0] - 1 if df["cumulative_pnl"].iloc[0] != 0 else 0
+    total_return = df["equity"].iloc[-1] - 1 if "equity" in df.columns and not df.empty else 0
     
     # Risk metrics
     max_drawdown = df["drawdown"].min()
