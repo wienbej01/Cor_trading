@@ -17,19 +17,19 @@ usdcad_wti:
   
   # Trading thresholds
   thresholds:
-    entry_z: 1.0         # Relaxed Z-score threshold for entry (was 1.5)
-    exit_z: 0.5          # Relaxed Z-score threshold for exit (was 0.3)
+    entry_z: 2.0         # Stricter Z-score threshold for entry
+    exit_z: 1.0          # Stricter Z-score threshold for exit
     stop_z: 3.5          # Z-score threshold for stop loss
     adf_p: 0.05          # ADF test p-value threshold
-    min_abs_corr: 0.3    # Minimum absolute correlation threshold
+    min_abs_corr: 0.4    # Minimum absolute correlation threshold
   
   # Time stop
   time_stop:
-    max_days: 10         # Maximum days to hold a position (reduced from 20)
+    max_days: 20         # Maximum days to hold a position
   
   # Regime filter
   regime:
-    min_abs_corr: 0.15   # Relaxed minimum absolute correlation for trading
+    min_abs_corr: 0.4    # Stricter minimum absolute correlation for trading
     volatility_window: 20 # Window for volatility regime detection
     high_vol_threshold: 0.02  # High volatility threshold
     low_vol_threshold: 0.005   # Low volatility threshold
@@ -69,19 +69,19 @@ usdnok_brent:
   
   # Trading thresholds
   thresholds:
-    entry_z: 1.0         # Relaxed Z-score threshold for entry (was 1.5)
-    exit_z: 0.5          # Relaxed Z-score threshold for exit (was 0.3)
+    entry_z: 2.0         # Stricter Z-score threshold for entry
+    exit_z: 1.0          # Stricter Z-score threshold for exit
     stop_z: 3.5          # Z-score threshold for stop loss
     adf_p: 0.05          # ADF test p-value threshold
-    min_abs_corr: 0.3    # Minimum absolute correlation threshold
+    min_abs_corr: 0.4    # Minimum absolute correlation threshold
   
   # Time stop
   time_stop:
-    max_days: 10         # Maximum days to hold a position (reduced from 20)
+    max_days: 20         # Maximum days to hold a position
   
   # Regime filter
   regime:
-    min_abs_corr: 0.15   # Relaxed minimum absolute correlation for trading
+    min_abs_corr: 0.4   # Stricter minimum absolute correlation for trading
     volatility_window: 20 # Window for volatility regime detection
     high_vol_threshold: 0.02  # High volatility threshold
     low_vol_threshold: 0.005   # Low volatility threshold
