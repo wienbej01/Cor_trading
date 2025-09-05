@@ -99,9 +99,9 @@ def generate_signals(
     regime_ok = correlation_gate(fx_series, comd_series, corr_window, min_abs_corr)
     p_adf = adf_pvalue(spread)
     
-    # RELAXED gating: allow trades when either correlation OR cointegration passes
-    adf_ok = (p_adf <= 0.10)  # Relaxed from 0.05 to 0.10
-    good_regime = (regime_ok | adf_ok)  # Use OR instead of AND for more permissive filtering
+    # STRRICTER gating: allow trades only when both correlation AND cointegration pass
+    adf_ok = (p_adf <= 0.10)
+    good_regime = (regime_ok & adf_ok)  # Use AND for stricter filtering
     result["good_regime"] = good_regime
     result["adf_p"] = p_adf
     

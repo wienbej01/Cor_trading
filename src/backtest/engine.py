@@ -9,6 +9,9 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
+# Opt-in to future pandas behavior
+pd.set_option('future.no_silent_downcasting', True)
+
 
 def _safe_cagr(eq: pd.Series) -> float:
     """
@@ -146,7 +149,7 @@ def backtest_pair(
     result["total_pnl"] = result["total_pnl"] - cost_fx - cost_cm
     
     # Calculate cumulative PnL
-    result["total_pnl"].fillna(0.0, inplace=True)
+    result["total_pnl"] = result["total_pnl"].fillna(0.0)
     result["cumulative_pnl"] = result["total_pnl"].cumsum()
     
     # Fill NaN values in PnL and calculate equity curve
@@ -155,10 +158,9 @@ def backtest_pair(
     
     # Calculate drawdown based on equity
     running_max_equity = result["equity"].cummax()
-    result["drawdown"] = 0.0
-    non_zero_mask = running_max_equity != 0
-    result.loc[non_zero_mask, "drawdown"] = (result.loc[non_zero_mask, "equity"] - running_max_equity[non_zero_mask]) / running_max_equity[non_zero_mask]
-    result['drawdown'].fillna(0.0, inplace=True)
+    drawdown_series = (result["equity"] - running_max_equity) / running_max_equity
+    # result["drawdown"] = drawdown_series.fillna(0.0)
+    result["drawdown"] = drawdown_series.replace([np.inf, -np.inf], np.nan).fillna(0.0)
     
     # Calculate trade statistics
     result = _calculate_trade_stats(result)
@@ -245,8 +247,8 @@ def _calculate_trade_stats(df: pd.DataFrame) -> pd.DataFrame:
         trades_df["return"] = trades_df["pnl"] / (abs(trades_df["fx_entry"]) + abs(trades_df["comd_entry"]))
         
         # Store trade statistics in original DataFrame
-        df["trade_pnl"] = 0
-        df["trade_return"] = 0
+        df["trade_pnl"] = 0.0
+        df["trade_return"] = 0.0
         
         for _, trade in trades_df.iterrows():
             mask = (df.index >= trade["entry_date"]) & (df.index <= trade["exit_date"])
