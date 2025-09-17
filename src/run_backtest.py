@@ -15,8 +15,7 @@ from src.strategy.mean_reversion import generate_signals_with_regime_filter
 from src.backtest.engine import run_backtest, create_backtest_report
 from src.utils.logging import setup_logging, trading_logger
 
-# Add the project root to the Python path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Run from project root; no path modification needed
 
 
 @click.command()
