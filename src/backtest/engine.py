@@ -9,6 +9,9 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
+# Opt-in to future pandas behavior
+pd.set_option('future.no_silent_downcasting', True)
+
 
 def _safe_cagr(eq: pd.Series) -> float:
     """
@@ -100,39 +103,8 @@ def backtest_pair(
     # Create result DataFrame
     result = df.copy()
 
-    # Generate trading signals based on z-score thresholds
-    result["entry_signal"] = 0
-    result["exit_signal"] = 0
-    result["stop_signal"] = 0
-
-    # Long entry when spread_z > entry_z
-    result.loc[result["spread_z"] > entry_z, "entry_signal"] = 1
-    # Short entry when spread_z < -entry_z
-    result.loc[result["spread_z"] < -entry_z, "entry_signal"] = -1
-
-    # Long exit when spread_z < exit_z
-    result.loc[
-        (result["spread_z"] < exit_z) & (result["spread_z"] > 0), "exit_signal"
-    ] = 1
-    # Short exit when spread_z > -exit_z
-    result.loc[
-        (result["spread_z"] > -exit_z) & (result["spread_z"] < 0), "exit_signal"
-    ] = -1
-
-    # Stop loss when spread_z > stop_z (for long) or spread_z < -stop_z (for short)
-    result.loc[result["spread_z"] > stop_z, "stop_signal"] = 1
-    result.loc[result["spread_z"] < -stop_z, "stop_signal"] = -1
-
-    # Generate final trading signal
-    result["raw_signal"] = 0
-    # Entry signals
-    result.loc[result["entry_signal"] == 1, "raw_signal"] = 1
-    result.loc[result["entry_signal"] == -1, "raw_signal"] = -1
-    # Exit signals override entry signals
-    result.loc[result["exit_signal"] != 0, "raw_signal"] = 0
-    # Stop signals override everything
-    result.loc[result["stop_signal"] == 1, "raw_signal"] = 0
-    result.loc[result["stop_signal"] == -1, "raw_signal"] = 0
+    # Use pre-computed strategy signal (stateful, already filtered/gated)
+    result["raw_signal"] = df["signal"].astype(float).fillna(0.0)
 
     # Apply one-bar execution delay
     result["delayed_signal"] = result["raw_signal"].shift(1)
@@ -159,22 +131,19 @@ def backtest_pair(
     result["total_pnl"] = result["total_pnl"] - cost_fx - cost_cm
 
     # Calculate cumulative PnL
+    result["total_pnl"] = result["total_pnl"].fillna(0.0)
     result["cumulative_pnl"] = result["total_pnl"].cumsum()
 
     # Fill NaN values in PnL and calculate equity curve
-    pnl = result["total_pnl"].fillna(0.0)
-    result["pnl"] = pnl
-    initial_equity = 1.0
-    equity = initial_equity + pnl.cumsum()
-    result["equity"] = equity
-
-    # Calculate running maximum for drawdown calculation
-    result["running_max"] = result["equity"].cummax()
-
-    # Calculate drawdown with safe division
-    result["drawdown"] = (result["equity"] - result["running_max"]) / result["running_max"]
-    result["drawdown"] = result["drawdown"].fillna(0)
-
+    result["pnl"] = result["total_pnl"]
+    result["equity"] = (1.0 + result["pnl"]).cumprod()
+    
+    # Calculate drawdown based on equity
+    running_max_equity = result["equity"].cummax()
+    drawdown_series = (result["equity"] - running_max_equity) / running_max_equity
+    # result["drawdown"] = drawdown_series.fillna(0.0)
+    result["drawdown"] = drawdown_series.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    
     # Calculate trade statistics
     result = _calculate_trade_stats(result)
 
@@ -271,9 +240,9 @@ def _calculate_trade_stats(df: pd.DataFrame) -> pd.DataFrame:
         )
 
         # Store trade statistics in original DataFrame
-        df["trade_pnl"] = 0
-        df["trade_return"] = 0
-
+        df["trade_pnl"] = 0.0
+        df["trade_return"] = 0.0
+        
         for _, trade in trades_df.iterrows():
             mask = (df.index >= trade["entry_date"]) & (df.index <= trade["exit_date"])
             df.loc[mask, "trade_pnl"] = trade["pnl"]
@@ -298,9 +267,9 @@ def calculate_performance_metrics(df: pd.DataFrame) -> Dict:
 
     # Basic metrics
     total_pnl = df["total_pnl"].sum()
-    equity = df["equity"]
+    equity = df["equity"] if ("equity" in df.columns and not df.empty) else pd.Series([1.0], index=[0])
     total_return = equity.iloc[-1] / equity.iloc[0] - 1
-
+    
     # Risk metrics
     max_drawdown = df["drawdown"].min()
     volatility = df["pnl"].std() * np.sqrt(252)  # Annualized

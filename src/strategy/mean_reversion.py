@@ -6,12 +6,14 @@ Implements signal generation and position sizing for spread trading.
 from typing import Dict, Optional
 
 import pandas as pd
+import numpy as np
 from loguru import logger
 
 from src.features.indicators import atr_proxy, zscore_robust
 from src.features.spread import compute_spread
 from src.features.regime import combined_regime_filter, correlation_gate
 from statsmodels.tsa.stattools import adfuller
+from src.features.cointegration import ou_half_life, hurst_exponent
 
 # Import ensemble model
 from src.ml.ensemble import create_ensemble_model, ModelConfig
@@ -133,25 +135,55 @@ def generate_signals(
         z = zscore_robust(spread, z_window).rename("z")
         result["spread_z"] = z
 
-    # Implement softer gating logic
+    # Regime gating (corr + cointegration diagnostics)
     regime_ok = correlation_gate(fx_series, comd_series, corr_window, min_abs_corr)
     p_adf = adf_pvalue(spread)
+    adf_threshold = float(config.get("thresholds", {}).get("adf_p", 0.05))
+    adf_ok = p_adf <= adf_threshold
 
-    # RELAXED gating: allow trades when either correlation OR cointegration passes
-    adf_ok = p_adf <= 0.10  # Relaxed from 0.05 to 0.10
-    good_regime = (
-        regime_ok | adf_ok
-    )  # Use OR instead of AND for more permissive filtering
+    # Structural mean-reversion diagnostics (evaluate once, persisted as scalars)
+    try:
+        ou_hl_val = float(ou_half_life(spread.dropna(), cap=252.0))
+    except Exception:
+        ou_hl_val = float("inf")
+    try:
+        hurst_val = float(hurst_exponent(spread.dropna()))
+    except Exception:
+        hurst_val = 0.5
+
+    # Mean-reversion structural checks
+    hl_ok = (ou_hl_val >= 2.0) and (ou_hl_val <= 60.0)  # 2–60 trading days
+    hurst_ok = (hurst_val < 0.5)
+
+    coint_ok = adf_ok and hl_ok and hurst_ok
+
+    # Final good_regime gate: correlation AND structural cointegration gate
+    good_regime = regime_ok & pd.Series(coint_ok, index=result.index)
+
+    # Persist diagnostics
     result["good_regime"] = good_regime
     result["adf_p"] = p_adf
+    result["ou_half_life"] = ou_hl_val
+    result["hurst"] = hurst_val
 
-    # Generate raw signals with RELAXED thresholds
-    result["raw_signal"] = 0  # 0: no position, 1: long spread, -1: short spread
+    # Dynamic z-thresholds (robust to volatility drifts)
+    result["raw_signal"] = 0  # 0: flat, 1: long spread, -1: short spread
 
-    # entries/exits with RELAXED thresholds
-    enter_long = (z <= -entry_z) & good_regime  # entry_z now 1.5 instead of 2.0
-    enter_short = (z >= entry_z) & good_regime  # entry_z now 1.5 instead of 2.0
-    exit_rule = z.abs() <= exit_z
+    spread_vol_20 = spread.rolling(20).std()
+    vol_med_252 = spread_vol_20.rolling(252, min_periods=20).median()
+    vol_scale = (spread_vol_20 / vol_med_252).clip(0.7, 1.5).fillna(1.0)
+
+    entry_z_dyn = entry_z * vol_scale
+    exit_z_dyn = (exit_z * vol_scale).clip(upper=1.2)
+
+    # Entries/exits
+    enter_long = (z <= -entry_z_dyn) & good_regime
+    enter_short = (z >= entry_z_dyn) & good_regime
+    exit_rule = z.abs() <= exit_z_dyn
+
+    # Persist thresholds for diagnostics
+    result["entry_z_dyn"] = entry_z_dyn
+    result["exit_z_dyn"] = exit_z_dyn
 
     # Add profit targets and stop losses
     profit_target = 2.0  # 2x ATR for profit targets
@@ -170,16 +202,16 @@ def generate_signals(
     result.loc[enter_short, "raw_signal"] = -1
 
     # Exit signals - ensure they have the same index as result
-    long_exit = pd.Series(z >= -exit_z, index=result.index)
-    short_exit = pd.Series(z <= exit_z, index=result.index)
+    long_exit = pd.Series(z >= -exit_z_dyn, index=result.index)
+    short_exit = pd.Series(z <= exit_z_dyn, index=result.index)
 
-    # Enhanced stop loss and profit target signals
-    long_stop = pd.Series(z >= -stop_z, index=result.index)
-    short_stop = pd.Series(z <= stop_z, index=result.index)
+    # Stop losses: cut when adverse excursion grows
+    long_stop = pd.Series(z <= -stop_z, index=result.index)   # more negative
+    short_stop = pd.Series(z >= stop_z, index=result.index)   # more positive
 
-    # Profit target signals (2x ATR)
-    long_profit = pd.Series(z <= -profit_target, index=result.index)
-    short_profit = pd.Series(z >= profit_target, index=result.index)
+    # Profit targets (optional, default align with exit to avoid conflict)
+    long_profit = pd.Series(False, index=result.index)
+    short_profit = pd.Series(False, index=result.index)
 
     # Add enhanced signal tracking
     result["long_exit"] = long_exit
@@ -314,6 +346,18 @@ def apply_time_stop(signals_df: pd.DataFrame, max_days: int) -> pd.DataFrame:
     result = signals_df.copy()
     result["time_stop_exit"] = False
 
+    # Derive a dynamic time-stop from OU half-life when available:
+    # effective_max_days = min(max_days, 3 * OU_half_life) bounded to [2, max_days]
+    effective_max_days = int(max_days)
+    if "ou_half_life" in result.columns:
+        try:
+            hl = float(result["ou_half_life"].iloc[0])
+            if hl > 0 and np.isfinite(hl):
+                effective_max_days = max(2, min(int(round(hl * 3.0)), int(max_days)))
+        except Exception:
+            pass
+    logger.info(f"Time-stop days used: {effective_max_days}")
+
     # Track position entry dates
     position_entry_date = None
     current_position = 0
@@ -333,7 +377,7 @@ def apply_time_stop(signals_df: pd.DataFrame, max_days: int) -> pd.DataFrame:
         elif position_entry_date is not None and current_position != 0:
             days_held = (idx - position_entry_date).days
 
-            if days_held >= max_days:
+            if days_held >= effective_max_days:
                 result.loc[idx, "signal"] = 0
                 result.loc[idx, "time_stop_exit"] = True
                 position_entry_date = None
@@ -344,8 +388,8 @@ def apply_time_stop(signals_df: pd.DataFrame, max_days: int) -> pd.DataFrame:
         result,
         20,  # Default ATR window
         (
-            result["fx_size"].iloc[0] * result["fx_atr"].iloc[0]
-            if "fx_atr" in result.columns
+            result["fx_size"].iloc[0] * result.get("fx_atr", pd.Series([0.01], index=result.index)).iloc[0]
+            if "fx_size" in result.columns
             else 0.01
         ),
         True,
