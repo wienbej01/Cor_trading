@@ -1,0 +1,766 @@
+2025-09-12 14:41:25.043 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:41:25.044 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:41:25.044 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:41:25.044 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:41:25.045 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:41:25.047 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:41:25.047 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:41:25.047 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:41:25.047 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:41:25.049 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:41:26.514 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:41:26.515 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:41:26.515 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:41:26.516 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:41:26.516 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:41:26.529 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:41:26.530 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:41:26.530 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:41:26.530 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:41:26.531 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:41:26.531 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:41:26.766 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:41:26.767 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:41:26.768 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:41:26.768 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:41:26.769 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:41:26.785 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:41:26.787 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:41:26.793 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:41:26.795 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:125 - Input validation failed: Validation error for parameter 'series_alignment': Series length mismatch: FX=8689, Commodity=8665
+2025-09-12 14:41:26.796 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: Input validation failed: Validation error for parameter 'series_alignment': Series length mismatch: FX=8689, Commodity=8665
+2025-09-12 14:41:26.797 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: Input validation failed: Validation error for parameter 'series_alignment': Series length mismatch: FX=8689, Commodity=8665
+2025-09-12 14:41:26.799 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:41:26.800 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:41:26.833 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:41:26.834 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:41:26.836 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:41:26.838 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:41:26.840 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:41:26.842 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:41:26.844 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:41:26.875 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:41:26.877 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:41:26.880 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:41:26.882 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:41:26.883 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:41:26.885 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:41:26.887 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:41:26.888 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:41:26.894 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:41:26.895 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:41:26.896 | ERROR    | src.ml.ensemble:_generate_d1_signals:771 - D1 signal generation failed: 'series_a'
+2025-09-12 14:41:26.897 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: 'series_a'
+2025-09-12 14:41:26.900 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:41:26.902 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 14:42:38.568 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:42:38.570 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:42:38.571 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:42:38.572 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:42:38.573 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:42:38.573 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:42:38.574 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:42:38.575 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:42:38.576 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:42:38.579 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:42:39.645 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:42:39.645 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:42:39.649 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:42:39.654 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:42:39.654 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:42:39.676 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:42:39.677 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:42:39.677 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:42:39.677 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:42:39.677 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:42:39.677 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:42:39.908 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:42:39.913 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:42:39.917 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:42:39.919 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:42:39.919 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:42:39.956 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:42:39.961 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:42:39.970 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:42:39.972 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:125 - Input validation failed: Validation error for parameter 'series_alignment': Series length mismatch: FX=8689, Commodity=8665
+2025-09-12 14:42:39.975 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: Input validation failed: Validation error for parameter 'series_alignment': Series length mismatch: FX=8689, Commodity=8665
+2025-09-12 14:42:39.975 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: Input validation failed: Validation error for parameter 'series_alignment': Series length mismatch: FX=8689, Commodity=8665
+2025-09-12 14:42:39.976 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:42:39.976 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:42:40.023 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:42:40.024 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:42:40.025 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:42:40.026 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:42:40.026 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:42:40.027 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:42:40.027 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:42:40.045 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:42:40.046 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:42:40.047 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:42:40.048 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:42:40.049 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:42:40.049 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:42:40.050 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:42:40.051 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:42:40.053 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:42:40.054 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:42:40.055 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 14:42:40.056 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 14:42:40.057 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:42:40.058 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 14:44:03.129 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:44:03.129 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:44:03.129 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:44:03.129 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:44:03.130 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:44:03.130 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:44:03.130 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:44:03.131 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:44:03.131 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:44:03.132 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:44:04.252 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:44:04.254 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:44:04.255 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:44:04.256 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:44:04.257 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:44:04.268 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:44:04.268 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:44:04.269 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:44:04.269 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:44:04.270 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:44:04.271 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:44:04.467 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:44:04.469 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:44:04.470 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:44:04.471 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:44:04.473 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:44:04.484 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:44:04.485 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:44:04.487 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:44:04.488 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 14:44:04.497 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 14:44:04.498 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 14:44:04.498 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 14:44:04.498 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:161 - H1 parameter extraction failed: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:44:04.498 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:44:04.499 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:44:04.499 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:44:04.499 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:44:04.523 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:44:04.525 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:44:04.526 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:44:04.526 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:44:04.527 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:44:04.527 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:44:04.527 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:44:04.547 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:44:04.547 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:44:04.548 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:44:04.549 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:44:04.549 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:44:04.550 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:44:04.552 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:44:04.553 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:44:04.555 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:44:04.555 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:44:04.555 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 14:44:04.556 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 14:44:04.556 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:44:04.557 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 14:44:49.029 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:44:49.030 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:44:49.031 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:44:49.031 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:44:49.032 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:44:49.032 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:44:49.032 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:44:49.032 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:44:49.033 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:44:49.033 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:44:49.927 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:44:49.929 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:44:49.934 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:44:49.935 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:44:49.935 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:44:49.956 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:44:49.956 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:44:49.957 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:44:49.957 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:44:49.958 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:44:49.958 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:44:50.163 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:44:50.165 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:44:50.166 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:44:50.167 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:44:50.169 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:44:50.185 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:44:50.186 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:44:50.191 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:44:50.192 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 14:44:50.195 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 14:44:50.196 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 14:44:50.197 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 14:44:50.197 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:161 - H1 parameter extraction failed: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:44:50.198 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:44:50.199 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:44:50.200 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:44:50.201 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:44:50.227 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:44:50.228 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:44:50.229 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:44:50.230 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:44:50.230 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:44:50.231 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:44:50.232 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:44:50.260 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:44:50.261 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:44:50.262 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:44:50.263 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:44:50.264 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:44:50.264 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:44:50.266 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:44:50.268 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:44:50.272 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:44:50.274 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:44:50.275 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 14:44:50.276 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 14:44:50.277 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:44:50.278 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 14:45:33.825 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:45:33.826 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:45:33.826 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:45:33.827 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:45:33.827 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:45:33.828 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:45:33.828 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:45:33.829 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:45:33.830 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:45:33.831 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:45:34.834 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:45:34.834 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:45:34.835 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:45:34.837 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:45:34.837 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:45:34.851 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:45:34.852 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:45:34.852 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:45:34.853 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:45:34.854 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:45:34.855 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:45:35.088 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:45:35.089 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:45:35.090 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:45:35.091 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:45:35.092 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:45:35.104 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:45:35.105 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:45:35.108 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:45:35.109 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 14:45:35.111 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 14:45:35.111 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 14:45:35.112 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 14:45:35.112 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:161 - H1 parameter extraction failed: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:45:35.113 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:45:35.114 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:45:35.114 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:45:35.115 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:45:35.136 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:45:35.137 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:45:35.137 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:45:35.138 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:45:35.138 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:45:35.138 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:45:35.139 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:45:35.163 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:45:35.164 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:45:35.166 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:45:35.167 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:45:35.168 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:45:35.169 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:45:35.170 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:45:35.171 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:45:35.174 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:45:35.175 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:45:35.176 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 14:45:35.177 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 14:45:35.178 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:45:35.181 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 14:46:17.210 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:46:17.211 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:46:17.211 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:46:17.211 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:46:17.211 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:46:17.211 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:46:17.211 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:46:17.211 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:46:17.211 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:46:17.212 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:46:18.150 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:46:18.152 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:46:18.154 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:46:18.156 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:46:18.160 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:46:18.196 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:46:18.198 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:46:18.198 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:46:18.199 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:46:18.199 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:46:18.199 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:46:18.432 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:46:18.434 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:46:18.435 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:46:18.436 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:46:18.438 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:46:18.452 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:46:18.452 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:46:18.454 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:46:18.455 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 14:46:18.457 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 14:46:18.459 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 14:46:18.460 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 14:46:18.461 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:161 - H1 parameter extraction failed: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:46:18.464 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:46:18.465 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:46:18.468 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:46:18.471 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:46:18.493 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:46:18.494 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:46:18.495 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:46:18.496 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:46:18.497 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:46:18.498 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:46:18.499 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:46:18.520 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:46:18.521 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:46:18.521 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:46:18.522 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:46:18.523 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:46:18.523 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:46:18.524 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:46:18.525 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:46:18.527 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:46:18.528 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:46:18.529 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 14:46:18.529 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 14:46:18.530 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:46:18.532 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 14:47:39.493 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:47:39.495 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:47:39.495 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:47:39.495 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:47:39.496 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:47:39.496 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:47:39.496 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:47:39.496 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:47:39.496 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:47:39.497 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:47:40.490 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:47:40.492 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:47:40.493 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:47:40.494 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:47:40.495 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:47:40.508 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:47:40.509 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:47:40.510 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:47:40.511 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:47:40.511 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:47:40.512 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:47:40.707 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:47:40.709 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:47:40.710 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:47:40.711 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:47:40.711 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:47:40.725 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:47:40.725 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:47:40.727 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:47:40.727 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 14:47:40.729 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 14:47:40.729 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 14:47:40.730 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 14:47:40.730 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:161 - H1 parameter extraction failed: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:47:40.730 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:47:40.730 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:47:40.731 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:47:40.731 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:47:40.751 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:47:40.752 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:47:40.753 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:47:40.754 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:47:40.755 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:47:40.755 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:47:40.756 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:47:40.777 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:47:40.781 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:47:40.782 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:47:40.782 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:47:40.782 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:47:40.782 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:47:40.783 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:47:40.784 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:47:40.787 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:47:40.787 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:47:40.788 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 14:47:40.789 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 14:47:40.790 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:47:40.791 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 14:48:36.000 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:48:36.001 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:48:36.002 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:48:36.002 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:48:36.003 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:48:36.004 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:48:36.004 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:48:36.005 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:48:36.006 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:48:36.008 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:48:36.936 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:48:36.940 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:48:36.943 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:48:36.945 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:48:36.947 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:48:36.965 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:48:36.966 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:48:36.966 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:48:36.966 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:48:36.966 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:48:36.966 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:48:37.181 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:48:37.181 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:48:37.182 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:48:37.183 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:48:37.184 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:48:37.198 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:48:37.199 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:48:37.206 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:48:37.210 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 14:48:37.213 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 14:48:37.214 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 14:48:37.215 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 14:48:37.215 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:161 - H1 parameter extraction failed: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:48:37.215 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:48:37.215 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:48:37.216 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:48:37.216 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:48:37.236 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:48:37.237 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:48:37.238 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:48:37.239 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:48:37.240 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:48:37.240 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:48:37.241 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:48:37.267 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:48:37.268 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:48:37.269 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:48:37.271 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:48:37.272 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:48:37.273 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:48:37.275 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:48:37.276 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:48:37.279 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:48:37.280 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:48:37.280 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 14:48:37.281 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 14:48:37.282 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:48:37.282 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 14:49:38.315 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:49:38.316 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:49:38.317 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:49:38.317 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:49:38.317 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:49:38.317 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:49:38.318 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:49:38.318 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:49:38.318 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:49:38.319 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:49:39.342 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:49:39.344 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:49:39.345 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:49:39.347 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:49:39.349 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:49:39.364 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:49:39.365 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:49:39.366 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:49:39.366 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:49:39.367 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:49:39.368 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:49:39.607 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:49:39.610 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:49:39.615 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:49:39.616 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:49:39.616 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:49:39.653 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:49:39.654 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:49:39.657 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:49:39.663 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 14:49:39.666 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 14:49:39.668 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 14:49:39.669 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 14:49:39.670 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:161 - H1 parameter extraction failed: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:49:39.671 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:49:39.671 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:49:39.672 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:49:39.673 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:49:39.698 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:49:39.699 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:49:39.700 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:49:39.701 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:49:39.701 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:49:39.702 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:49:39.702 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:49:39.734 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:49:39.734 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:49:39.735 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:49:39.736 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:49:39.737 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:49:39.737 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:49:39.738 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:49:39.739 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:49:39.740 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:49:39.741 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:49:39.742 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 14:49:39.742 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 14:49:39.743 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:49:39.744 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 14:51:04.513 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:51:04.514 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:51:04.514 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:51:04.515 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:51:04.515 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:51:04.516 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:51:04.516 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:51:04.516 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:51:04.517 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:51:04.519 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:51:05.676 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:51:05.676 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:51:05.679 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:51:05.682 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:51:05.683 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:51:05.698 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:51:05.699 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:51:05.700 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:51:05.701 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:51:05.705 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:51:05.706 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:51:05.910 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:51:05.911 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:51:05.912 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:51:05.914 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:51:05.915 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:51:05.933 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:51:05.933 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:51:05.935 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:51:05.935 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 14:51:05.950 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 14:51:05.950 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 14:51:05.950 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 14:51:05.950 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:161 - H1 parameter extraction failed: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:51:05.950 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:51:05.953 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:51:05.956 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:51:05.957 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:51:06.006 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:51:06.006 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:51:06.007 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:51:06.007 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:51:06.007 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:51:06.008 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:51:06.008 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:51:06.030 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:51:06.031 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:51:06.031 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:51:06.031 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:51:06.032 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:51:06.032 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:51:06.032 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:51:06.033 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:51:06.037 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:51:06.038 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:51:06.038 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 14:51:06.039 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 14:51:06.039 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:51:06.040 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 14:58:40.029 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 14:58:40.029 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 14:58:40.029 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 14:58:40.030 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 14:58:40.030 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 14:58:40.030 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 14:58:40.030 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 14:58:40.030 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 14:58:40.030 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:58:40.031 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:58:41.117 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:58:41.118 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:58:41.118 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:58:41.118 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:58:41.119 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:58:41.128 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 14:58:41.129 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 14:58:41.129 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 14:58:41.130 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 14:58:41.130 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:58:41.130 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:58:41.339 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:58:41.339 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:58:41.340 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:58:41.340 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:58:41.340 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:58:41.347 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 14:58:41.348 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 14:58:41.349 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 14:58:41.350 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 14:58:41.352 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 14:58:41.352 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 14:58:41.352 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 14:58:41.353 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:161 - H1 parameter extraction failed: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:58:41.353 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:58:41.353 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 14:58:41.354 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:58:41.354 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 14:58:41.370 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 14:58:41.371 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 14:58:41.372 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:58:41.373 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:58:41.374 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 14:58:41.374 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 14:58:41.375 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 14:58:41.393 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 14:58:41.394 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 14:58:41.395 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 14:58:41.395 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 14:58:41.396 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 14:58:41.396 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 14:58:41.397 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:58:41.398 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:58:41.400 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 14:58:41.401 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 14:58:41.401 | DEBUG    | src.data.yahoo_loader:align_series:166 - Aligned index has duplicates: False
+2025-09-12 14:58:41.401 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 14:58:41.401 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 14:58:41.402 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 14:58:41.402 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 15:00:45.814 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 15:00:45.815 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 15:00:45.815 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 15:00:45.815 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 15:00:45.816 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 15:00:45.816 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 15:00:45.816 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 15:00:45.816 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 15:00:45.816 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 15:00:45.817 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 15:00:46.791 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 15:00:46.792 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 15:00:46.793 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 15:00:46.794 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 15:00:46.795 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 15:00:46.811 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 15:00:46.812 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 15:00:46.813 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 15:00:46.814 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 15:00:46.816 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 15:00:46.817 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 15:00:47.015 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 15:00:47.016 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 15:00:47.018 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 15:00:47.020 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 15:00:47.021 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 15:00:47.035 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 15:00:47.036 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 15:00:47.038 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 15:00:47.040 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 15:00:47.044 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 15:00:47.045 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 15:00:47.047 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 15:00:47.048 | ERROR    | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:161 - H1 parameter extraction failed: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 15:00:47.049 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 15:00:47.049 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: H1 configuration error: Validation error for parameter 'config': Required configuration parameter 'h1.lookbacks.beta_window' is missing
+2025-09-12 15:00:47.051 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 15:00:47.052 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 15:00:47.075 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 15:00:47.076 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 15:00:47.077 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 15:00:47.079 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 15:00:47.080 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 15:00:47.080 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 15:00:47.081 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 15:00:47.105 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 15:00:47.106 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 15:00:47.107 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 15:00:47.108 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 15:00:47.108 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 15:00:47.109 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 15:00:47.109 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 15:00:47.110 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 15:00:47.113 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 15:00:47.114 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 15:00:47.115 | DEBUG    | src.data.yahoo_loader:align_series:166 - Aligned index has duplicates: False
+2025-09-12 15:00:47.116 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 15:00:47.116 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 15:00:47.117 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 15:00:47.118 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated
+2025-09-12 15:28:14.764 | INFO     | __main__:main:25 - Starting multi-timeframe backtest example
+2025-09-12 15:28:14.765 | INFO     | src.backtest.engine:run_multi_timeframe_backtest:850 - Running multi-timeframe backtest for USDCAD=X-CL=F
+2025-09-12 15:28:14.765 | INFO     | src.ml.ensemble:__init__:644 - Initialized MultiTimeframeEnsemble
+2025-09-12 15:28:14.766 | INFO     | src.ml.ensemble:generate_multi_timeframe_signals:669 - Generating multi-timeframe signals for USDCAD=X-CL=F
+2025-09-12 15:28:14.766 | INFO     | src.data.broker_api:__init__:71 - BrokerAPI initialized - Polygon: False, IBKR: False
+2025-09-12 15:28:14.766 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:271 - Fetching H1 data for 2 symbols concurrently
+2025-09-12 15:28:14.767 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for USDCAD=X from 2023-01-01 to 2023-12-31
+2025-09-12 15:28:14.767 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for USDCAD=X H1 data
+2025-09-12 15:28:14.767 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 15:28:14.768 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 15:28:15.842 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 15:28:15.851 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 15:28:15.851 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 15:28:15.852 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 15:28:15.852 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 15:28:15.863 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 260 daily bars to 8689 H1 bars for USDCAD=X
+2025-09-12 15:28:15.864 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for USDCAD=X: 8689 bars
+2025-09-12 15:28:15.865 | INFO     | src.data.broker_api:get_h1_data_async:109 - Fetching H1 data for CL=F from 2023-01-01 to 2023-12-31
+2025-09-12 15:28:15.865 | INFO     | src.data.broker_api:get_h1_data_async:126 - Using daily data resampling for CL=F H1 data
+2025-09-12 15:28:15.866 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 15:28:15.868 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 15:28:16.060 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 15:28:16.061 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 15:28:16.061 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 15:28:16.062 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 15:28:16.062 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 15:28:16.070 | INFO     | src.data.broker_api:_resample_daily_to_h1:197 - Resampled 250 daily bars to 8665 H1 bars for CL=F
+2025-09-12 15:28:16.071 | INFO     | src.data.broker_api:get_multi_symbol_h1_data:285 - Successfully fetched H1 data for CL=F: 8665 bars
+2025-09-12 15:28:16.073 | INFO     | src.strategy.h1_mean_reversion:generate_h1_signals_from_data:118 - Generating H1 signals from data
+2025-09-12 15:28:16.074 | WARNING  | src.interfaces.validation:validate_series_alignment:295 - Series length mismatch within tolerance: FX=8689, Commodity=8665 (difference: 24)
+2025-09-12 15:28:16.077 | WARNING  | src.interfaces.validation:validate_series_alignment:311 - Series have 100.0% date overlap, consider aligning data
+2025-09-12 15:28:16.077 | DEBUG    | src.interfaces.validation:validate_series_alignment:313 - Series alignment validation passed
+2025-09-12 15:28:16.077 | INFO     | src.interfaces.validation:validate_trading_config:259 - Trading configuration validation passed
+2025-09-12 15:28:16.671 | INFO     | src.features.indicators:zscore_robust:244 - zscore_robust called: series length=8689, window=12, NaN count=24
+2025-09-12 15:28:16.675 | INFO     | src.features.indicators:zscore_robust:248 - Rolling median computed: length=8689, NaN count=35
+2025-09-12 15:28:20.687 | INFO     | src.features.indicators:zscore_robust:251 - MAD computed: length=8689, NaN count=35
+2025-09-12 15:28:20.688 | INFO     | src.features.indicators:zscore_robust:254 - Denominator computed: min=1.2132686656877006e-06, max=0.004230838819444196
+2025-09-12 15:28:20.689 | INFO     | src.features.indicators:zscore_robust:257 - Z-scores computed: length=8689, NaN count=35
+2025-09-12 15:28:20.690 | ERROR    | src.ml.ensemble:_generate_h1_signals:734 - H1 signal generation failed: Series must have the same length
+2025-09-12 15:28:20.690 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:678 - Failed to generate H1 signals: Series must have the same length
+2025-09-12 15:28:20.691 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: USDCAD=X, date range: 2023-01-01 to 2023-12-31
+2025-09-12 15:28:20.692 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for USDCAD=X
+2025-09-12 15:28:20.709 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 260 data points for USDCAD=X
+2025-09-12 15:28:20.709 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-02 00:00:00+00:00 to 2023-12-29 00:00:00+00:00
+2025-09-12 15:28:20.710 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 15:28:20.711 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 15:28:20.712 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for USDCAD=X
+2025-09-12 15:28:20.712 | INFO     | src.data.yahoo_loader:download_daily:49 - Starting download for symbol: CL=F, date range: 2023-01-01 to 2023-12-31
+2025-09-12 15:28:20.713 | DEBUG    | src.data.yahoo_loader:download_daily:64 - Download attempt 1/4 for CL=F
+2025-09-12 15:28:20.732 | INFO     | src.data.yahoo_loader:download_daily:83 - Downloaded 250 data points for CL=F
+2025-09-12 15:28:20.734 | DEBUG    | src.data.yahoo_loader:download_daily:84 - Date range: 2023-01-03 00:00:00-05:00 to 2023-12-29 00:00:00-05:00
+2025-09-12 15:28:20.735 | DEBUG    | src.data.yahoo_loader:download_daily:85 - Missing values: 0
+2025-09-12 15:28:20.736 | DEBUG    | src.data.yahoo_loader:download_daily:95 - Removed timezone information from index
+2025-09-12 15:28:20.736 | SUCCESS  | src.data.yahoo_loader:download_daily:101 - Successfully downloaded data for CL=F
+2025-09-12 15:28:20.737 | INFO     | src.data.yahoo_loader:align_series:132 - Aligning series: Close (260 points) and Close (250 points)
+2025-09-12 15:28:20.737 | DEBUG    | src.data.yahoo_loader:align_series:153 - Original date ranges: Close: 2023-01-02 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 15:28:20.738 | DEBUG    | src.data.yahoo_loader:align_series:154 - Original date ranges: Close: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 15:28:20.740 | INFO     | src.data.yahoo_loader:align_series:164 - Successfully aligned series with 250 common data points
+2025-09-12 15:28:20.741 | DEBUG    | src.data.yahoo_loader:align_series:165 - Aligned date range: 2023-01-03 00:00:00 to 2023-12-29 00:00:00
+2025-09-12 15:28:20.741 | DEBUG    | src.data.yahoo_loader:align_series:166 - Aligned index has duplicates: False
+2025-09-12 15:28:20.742 | ERROR    | src.ml.ensemble:_generate_d1_signals:774 - D1 signal generation failed: single positional indexer is out-of-bounds
+2025-09-12 15:28:20.742 | ERROR    | src.ml.ensemble:generate_multi_timeframe_signals:688 - Failed to generate D1 signals: single positional indexer is out-of-bounds
+2025-09-12 15:28:20.743 | WARNING  | src.ml.ensemble:generate_multi_timeframe_signals:699 - No signals generated from either timeframe
+2025-09-12 15:28:20.744 | WARNING  | src.backtest.engine:run_multi_timeframe_backtest:868 - No multi-timeframe signals generated

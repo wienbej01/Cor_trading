@@ -15,11 +15,11 @@ def setup_logging(
     log_file: Optional[Path] = None,
     log_format: Optional[str] = None,
     rotation: str = "10 MB",
-    retention: str = "30 days"
+    retention: str = "30 days",
 ) -> None:
     """
     Set up logging configuration for the application.
-    
+
     Args:
         log_level: Logging level ("DEBUG", "INFO", "WARNING", "ERROR").
         log_file: Path to log file. If None, logs only to console.
@@ -29,7 +29,7 @@ def setup_logging(
     """
     # Remove default logger
     logger.remove()
-    
+
     # Default log format
     if log_format is None:
         log_format = (
@@ -38,39 +38,34 @@ def setup_logging(
             "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
             "<level>{message}</level>"
         )
-    
+
     # Add console logger
-    logger.add(
-        sys.stdout,
-        format=log_format,
-        level=log_level,
-        colorize=True
-    )
-    
+    logger.add(sys.stdout, format=log_format, level=log_level, colorize=True)
+
     # Add file logger if specified
     if log_file is not None:
         # Create log directory if it doesn't exist
         log_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         logger.add(
             log_file,
             format=log_format,
             level=log_level,
             rotation=rotation,
             retention=retention,
-            compression="zip"
+            compression="zip",
         )
-    
+
     logger.info(f"Logging configured with level: {log_level}")
 
 
 def get_logger(name: str):
     """
     Get a logger instance for a specific module.
-    
+
     Args:
         name: Name of the module (usually __name__).
-        
+
     Returns:
         Logger instance.
     """
@@ -80,34 +75,36 @@ def get_logger(name: str):
 def log_function_entry_exit(func):
     """
     Decorator to log function entry and exit.
-    
+
     Args:
         func: Function to decorate.
-        
+
     Returns:
         Decorated function.
     """
+
     def wrapper(*args, **kwargs):
         func_name = func.__name__
         logger.debug(f"Entering {func_name}")
         result = func(*args, **kwargs)
         logger.debug(f"Exiting {func_name}")
         return result
+
     return wrapper
 
 
 def log_performance(func):
     """
     Decorator to log function execution time.
-    
+
     Args:
         func: Function to decorate.
-        
+
     Returns:
         Decorated function.
     """
     import time
-    
+
     def wrapper(*args, **kwargs):
         func_name = func.__name__
         start_time = time.time()
@@ -116,6 +113,7 @@ def log_performance(func):
         execution_time = end_time - start_time
         logger.debug(f"{func_name} executed in {execution_time:.4f} seconds")
         return result
+
     return wrapper
 
 
@@ -123,50 +121,52 @@ class TradingLogger:
     """
     Specialized logger for trading operations.
     """
-    
+
     def __init__(self, name: str = "Trading"):
         """
         Initialize the trading logger.
-        
+
         Args:
             name: Name for the logger.
         """
         self.logger = logger.bind(name=name)
-    
+
     def log_signal(self, signal_type: str, details: dict) -> None:
         """
         Log a trading signal.
-        
+
         Args:
             signal_type: Type of signal ("entry", "exit", "stop_loss").
             details: Dictionary with signal details.
         """
         self.logger.info(f"Signal: {signal_type.upper()}", details=details)
-    
+
     def log_trade(self, trade_id: str, action: str, details: dict) -> None:
         """
         Log a trade action.
-        
+
         Args:
             trade_id: Unique trade identifier.
             action: Trade action ("open", "close", "modify").
             details: Dictionary with trade details.
         """
         self.logger.info(f"Trade {trade_id}: {action.upper()}", details=details)
-    
+
     def log_performance(self, metrics: dict) -> None:
         """
         Log performance metrics.
-        
+
         Args:
             metrics: Dictionary with performance metrics.
         """
         self.logger.info("Performance metrics", metrics=metrics)
-    
-    def log_error(self, error_type: str, error_message: str, details: dict = None) -> None:
+
+    def log_error(
+        self, error_type: str, error_message: str, details: dict = None
+    ) -> None:
         """
         Log an error with context.
-        
+
         Args:
             error_type: Type of error.
             error_message: Error message.
@@ -174,13 +174,13 @@ class TradingLogger:
         """
         if details is None:
             details = {}
-        
+
         self.logger.error(f"Error: {error_type} - {error_message}", details=details)
-    
+
     def log_data_quality(self, data_type: str, quality_metrics: dict) -> None:
         """
         Log data quality metrics.
-        
+
         Args:
             data_type: Type of data ("fx", "commodity", "spread").
             quality_metrics: Dictionary with quality metrics.

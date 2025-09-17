@@ -350,6 +350,10 @@ Trading Statistics:
 Note: All calculations include one-bar execution delay.
 ```
 
+## Backtest Results
+
+For a detailed log of backtest results, see the [Backtest Result Tracker](docs/backtest_tracker.md).
+
 ## Project Structure
 
 ```

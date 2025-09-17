@@ -1,0 +1,30 @@
+=== BACKTEST RESULTS ANALYSIS SUMMARY ===
+
+COMPREHENSIVE COMPARISON TABLE:
+                    Total PnL Total Return Annual Return Volatility Sharpe Ratio Max Drawdown Number of Trades Win Rate Average Win Average Loss Profit Factor
+USDCAD-WTI-Kalman     -0.0200         nan%          nan%     10.05%          nan     -265.27%            520.0   23.70%      0.0200      -0.0300          0.97
+USDCAD-WTI-OLS         0.1200         nan%          nan%      9.78%          nan     -202.62%            524.0   24.44%      0.0200      -0.0200          1.34
+USDNOK-Brent-Kalman   -0.2500         nan%          nan%      9.59%          nan     -425.76%            612.0   25.51%      0.0200      -0.0200          0.87
+USDNOK-Brent-OLS      -0.0300         nan%          nan%      8.60%          nan     -844.29%            520.0   21.93%      0.0200      -0.0200          0.98
+
+TECHNICAL ISSUES:
+- USDCAD-WTI-Kalman: NaN values in Total Return, Annual Return, Sharpe Ratio
+- USDCAD-WTI-Kalman: Extreme drawdown of -265.27%
+- USDCAD-WTI-Kalman: Low win rate of 23.70%
+- USDCAD-WTI-OLS: NaN values in Total Return, Annual Return, Sharpe Ratio
+- USDCAD-WTI-OLS: Extreme drawdown of -202.62%
+- USDCAD-WTI-OLS: Low win rate of 24.44%
+- USDNOK-Brent-Kalman: NaN values in Total Return, Annual Return, Sharpe Ratio
+- USDNOK-Brent-Kalman: Extreme drawdown of -425.76%
+- USDNOK-Brent-Kalman: Low win rate of 25.51%
+- USDNOK-Brent-OLS: NaN values in Total Return, Annual Return, Sharpe Ratio
+- USDNOK-Brent-OLS: Extreme drawdown of -844.29%
+- USDNOK-Brent-OLS: Low win rate of 21.93%
+
+
+KEY FINDINGS:
+- Average PnL across all strategies: -0.0450
+- Average Win Rate: 23.90%
+- Average Max Drawdown: -434.49%
+- Best performing strategy: USDCAD-WTI-OLS
+- Worst performing strategy: USDNOK-Brent-Kalman

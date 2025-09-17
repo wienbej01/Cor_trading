@@ -1,0 +1,41 @@
+[run]
+source = src
+omit = 
+    */tests/*
+    */test_*
+    */__pycache__/*
+    */venv/*
+    */env/*
+    */virtualenv/*
+    */.tox/*
+    */.eggs/*
+    */.git/*
+    */.vscode/*
+    */docs/*
+    */notebooks/*
+    */backtest_results/*
+    */LLM_Trading/*
+    */options/*
+    */conftest.py
+    */setup.py
+    */migrations/*
+    */settings/*
+    */wsgi.py
+    */asgi.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+
+show_missing = True
+precision = 2
+
+[html]
+directory = htmlcov

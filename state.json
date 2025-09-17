@@ -1,0 +1,10 @@
+{
+  "plan": [
+    "Fix all flake8 errors.",
+    "Run the backtest successfully.",
+    "Analyze the backtest results.",
+    "Re-enable the HMM filter.",
+    "Tune the HMM parameters to fix the convergence issues."
+  ],
+  "status": "Fixing flake8 errors."
+}

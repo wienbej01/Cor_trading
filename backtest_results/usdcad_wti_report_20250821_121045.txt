@@ -1,0 +1,23 @@
+
+    FX-Commodity Correlation Arbitrage Backtest Report
+    =================================================
+    
+    Period: 2023-01-03 to 2023-12-29 (360 days)
+    
+    Performance Metrics:
+    - Total PnL: -0.60
+    - Total Return: -59.92%
+    - Annual Return: -60.45%
+    - Volatility (Annual): 43.23%
+    - Sharpe Ratio: -1.40
+    - Maximum Drawdown: -61.09%
+    
+    Trading Statistics:
+    - Number of Trades: 34
+    - Win Rate: 0.00%
+    - Average Win: 0.00
+    - Average Loss: -0.07
+    - Profit Factor: 0.00
+    
+    Note: All calculations include one-bar execution delay.
+    

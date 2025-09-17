@@ -7,6 +7,16 @@ usdcad_wti:
   comd: "WTI"  # Commodity identifier
   inverse_fx_for_quote_ccy_strength: true  # Inverse USD/CAD for CAD strength
   
+  # Performance metrics
+  min_trade_count: 10  # Minimum number of trades required for meaningful annualized metrics
+  
+  # Rolling metrics
+  rolling_metrics:
+    windows:
+      "30D": 30
+      "60D": 60
+      "90D": 90
+  
   # Lookback windows
   lookbacks:
     beta_window: 90      # Window for hedge ratio calculation
@@ -32,11 +42,33 @@ usdcad_wti:
     min_abs_corr: 0.15   # Relaxed minimum absolute correlation for trading
     volatility_window: 20 # Window for volatility regime detection
     high_vol_threshold: 0.02  # High volatility threshold
-    low_vol_threshold: 0.005   # Low volatility threshold
+    low_vol_threshold: 0.003   # Low volatility threshold
     filter_extreme_vol: true   # Filter extreme volatility regimes
     trend_window: 20      # Window for trend regime detection
-    trend_threshold: 0.01 # Trend threshold
+    trend_threshold: 0.015 # Trend threshold
     filter_strong_trend: true  # Filter strong trending regimes
+    enable_hmm: true  # Enable HMM regime filter
+    hmm:
+      n_states: 3
+      window: 126
+      df: 5.0
+      tol: 1e-3
+      n_iter: 100
+    vix:
+      thresh: 20
+      boost_factor: 0.2
+      max_shift: 1
+  
+  # Regime features (new)
+  regime_features:
+    volatility_regime: true
+    commodity_cycle: true
+    vix_overlay: true
+    yield_curve_overlay: false
+    vpa: true
+    liquidity_sweep: true
+    trend_filters: true
+    correlation_features: true
   
   # Position sizing
   sizing:
@@ -44,9 +76,46 @@ usdcad_wti:
     target_vol_per_leg: 0.01  # Target volatility per leg (1%)
     profit_target: 2.0    # 2x ATR for profit targets
     stop_loss: 1.5        # 1.5x ATR for stop losses
+    volatility_scaling_enabled: true  # Enable volatility scaling (new)
+    target_volatility: 0.01  # Target volatility (1%) (new)
+    max_position_size: 0.10  # Maximum position size (10% of portfolio) (new)
+    
+  # Execution costs
+  exec:
+    default_order_type: "market"
+    costs:
+      small_thresh: 0.01  # Equity fraction for small trades
+      large_thresh: 0.05  # Equity fraction for large trades
+      small_bps: 0.5      # Basis points for small trades
+      large_bps: 2.0      # Basis points for large trades
+      impact_coeff: 0.5   # Quadratic impact coefficient
+  
+  # Risk management
+  risk:
+    max_position_size: 0.10  # Maximum 10% of equity per pair
+    max_daily_loss: 0.02     # Maximum 2% daily loss per pair
+    max_weekly_loss: 0.05    # Maximum 5% weekly loss per pair
+    daily_drawdown_limit: 0.02  # Maximum 2% daily drawdown per pair
+    max_trade_risk: 0.01     # Maximum 1% of portfolio per trade
+    enable_circuit_breaker: true  # Enable circuit breaker for this pair
   
   # Advanced options
   use_kalman: true       # Use Kalman filter for dynamic beta
+  
+  # Model diversification options
+  model_diversification:
+    enable_ensemble: true           # Enable ensemble model
+    enable_ols: true               # Enable OLS model
+    enable_kalman_model: true      # Enable Kalman model
+    enable_correlation_model: true # Enable correlation model
+    enable_gb_model: true          # Enable Gradient Boosting model
+    enable_lstm_model: true        # Enable LSTM model
+    model_weights:
+      ols: 0.2
+      kalman: 0.2
+      corr: 0.2
+      gb: 0.2
+      lstm: 0.2
   
   # Event calendar (optional)
   calendar:
@@ -59,6 +128,16 @@ usdnok_brent:
   comd: "BRENT"  # Commodity identifier
   inverse_fx_for_quote_ccy_strength: true  # Inverse USD/NOK for NOK strength
   
+  # Performance metrics
+  min_trade_count: 10  # Minimum number of trades required for meaningful annualized metrics
+  
+  # Rolling metrics
+  rolling_metrics:
+    windows:
+      "30D": 30
+      "60D": 60
+      "90D": 90
+  
   # Lookback windows
   lookbacks:
     beta_window: 90      # Window for hedge ratio calculation
@@ -84,11 +163,33 @@ usdnok_brent:
     min_abs_corr: 0.15   # Relaxed minimum absolute correlation for trading
     volatility_window: 20 # Window for volatility regime detection
     high_vol_threshold: 0.02  # High volatility threshold
-    low_vol_threshold: 0.005   # Low volatility threshold
+    low_vol_threshold: 0.003   # Low volatility threshold
     filter_extreme_vol: true   # Filter extreme volatility regimes
     trend_window: 20      # Window for trend regime detection
-    trend_threshold: 0.01 # Trend threshold
+    trend_threshold: 0.015 # Trend threshold
     filter_strong_trend: true  # Filter strong trending regimes
+    enable_hmm: true  # Enable HMM regime filter
+    hmm:
+      n_states: 3
+      window: 126
+      df: 5.0
+      tol: 1e-3
+      n_iter: 100
+    vix:
+      thresh: 20
+      boost_factor: 0.2
+      max_shift: 1
+  
+  # Regime features (new)
+  regime_features:
+    volatility_regime: true
+    commodity_cycle: true
+    vix_overlay: true
+    yield_curve_overlay: false
+    vpa: true
+    liquidity_sweep: true
+    trend_filters: true
+    correlation_features: true
   
   # Position sizing
   sizing:
@@ -96,9 +197,36 @@ usdnok_brent:
     target_vol_per_leg: 0.01  # Target volatility per leg (1%)
     profit_target: 2.0    # 2x ATR for profit targets
     stop_loss: 1.5        # 1.5x ATR for stop losses
+    volatility_scaling_enabled: true  # Enable volatility scaling (new)
+    target_volatility: 0.01  # Target volatility (1%) (new)
+    max_position_size: 0.10  # Maximum position size (10% of portfolio) (new)
+  
+  # Risk management
+  risk:
+    max_position_size: 0.10  # Maximum 10% of equity per pair
+    max_daily_loss: 0.02     # Maximum 2% daily loss per pair
+    max_weekly_loss: 0.05    # Maximum 5% weekly loss per pair
+    daily_drawdown_limit: 0.02  # Maximum 2% daily drawdown per pair
+    max_trade_risk: 0.01     # Maximum 1% of portfolio per trade
+    enable_circuit_breaker: true  # Enable circuit breaker for this pair
   
   # Advanced options
   use_kalman: true       # Use Kalman filter for dynamic beta
+  
+  # Model diversification options
+  model_diversification:
+    enable_ensemble: true           # Enable ensemble model
+    enable_ols: true               # Enable OLS model
+    enable_kalman_model: true      # Enable Kalman model
+    enable_correlation_model: true # Enable correlation model
+    enable_gb_model: true          # Enable Gradient Boosting model
+    enable_lstm_model: true        # Enable LSTM model
+    model_weights:
+      ols: 0.2
+      kalman: 0.2
+      corr: 0.2
+      gb: 0.2
+      lstm: 0.2
   
   # Event calendar (optional)
   calendar:

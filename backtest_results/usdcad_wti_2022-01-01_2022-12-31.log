@@ -1,0 +1,44 @@
+2025-08-21 12:12:27 | INFO     | src.utils.logging:setup_logging:64 | Logging configured with level: INFO
+2025-08-21 12:12:27 | INFO     | __main__:run_backtest_cli:92 | Starting backtest for pair: usdcad_wti
+2025-08-21 12:12:27 | INFO     | __main__:run_backtest_cli:93 | Backtest period: 2022-01-01 to 2022-12-31
+2025-08-21 12:12:27 | INFO     | src.core.config:load_pairs_config:47 | Loading pairs configuration from /home/jacobw/Cor_trading/configs/pairs.yaml
+2025-08-21 12:12:27 | INFO     | src.core.config:load_pairs_config:52 | Loaded configuration for 2 pairs
+2025-08-21 12:12:27 | INFO     | __main__:run_backtest_cli:108 | Loaded configuration for usdcad_wti
+2025-08-21 12:12:27 | INFO     | __main__:run_backtest_cli:111 | Downloading market data
+2025-08-21 12:12:27 | INFO     | src.data.yahoo_loader:download_and_align_pair:204 | Starting pair download: USDCAD=X vs CL=F
+2025-08-21 12:12:27 | INFO     | src.data.yahoo_loader:download_and_align_pair:205 | Date range: 2022-01-01 to 2022-12-31
+2025-08-21 12:12:27 | INFO     | src.data.yahoo_loader:download_and_align_pair:226 | Downloading FX data: USDCAD=X
+2025-08-21 12:12:27 | INFO     | src.data.yahoo_loader:download_daily:49 | Starting download for symbol: USDCAD=X, date range: 2022-01-01 to 2022-12-31
+2025-08-21 12:12:27 | INFO     | src.data.yahoo_loader:download_daily:83 | Downloaded 260 data points for USDCAD=X
+2025-08-21 12:12:27 | SUCCESS  | src.data.yahoo_loader:download_daily:101 | Successfully downloaded data for USDCAD=X
+2025-08-21 12:12:27 | INFO     | src.data.yahoo_loader:download_and_align_pair:230 | Downloading commodity data: CL=F
+2025-08-21 12:12:27 | INFO     | src.data.yahoo_loader:download_daily:49 | Starting download for symbol: CL=F, date range: 2022-01-01 to 2022-12-31
+2025-08-21 12:12:28 | INFO     | src.data.yahoo_loader:download_daily:83 | Downloaded 251 data points for CL=F
+2025-08-21 12:12:28 | SUCCESS  | src.data.yahoo_loader:download_daily:101 | Successfully downloaded data for CL=F
+2025-08-21 12:12:28 | INFO     | src.data.yahoo_loader:download_and_align_pair:235 | FX data: 260 points from 2022-01-03 00:00:00 to 2022-12-30 00:00:00
+2025-08-21 12:12:28 | INFO     | src.data.yahoo_loader:download_and_align_pair:236 | Commodity data: 251 points from 2022-01-03 00:00:00 to 2022-12-30 00:00:00
+2025-08-21 12:12:28 | INFO     | src.data.yahoo_loader:align_series:132 | Aligning series: fx (260 points) and comd (251 points)
+2025-08-21 12:12:28 | INFO     | src.data.yahoo_loader:align_series:164 | Successfully aligned series with 251 common data points
+2025-08-21 12:12:28 | SUCCESS  | src.data.yahoo_loader:download_and_align_pair:246 | Successfully downloaded and aligned pair
+2025-08-21 12:12:28 | INFO     | src.data.yahoo_loader:download_and_align_pair:247 | Final dataset: 251 data points
+2025-08-21 12:12:28 | INFO     | src.data.yahoo_loader:download_and_align_pair:248 | Date range: 2022-01-03 00:00:00 to 2022-12-30 00:00:00
+2025-08-21 12:12:28 | INFO     | __main__:run_backtest_cli:121 | Downloaded 251 data points
+2025-08-21 12:12:28 | INFO     | __main__:run_backtest_cli:124 | Generating trading signals
+2025-08-21 12:12:28 | INFO     | src.strategy.mean_reversion:generate_signals_with_regime_filter:326 | Generating signals with regime filtering
+2025-08-21 12:12:28 | INFO     | src.features.regime:correlation_gate:53 | Correlation gate: 178/251 signals pass threshold (70.92%)
+2025-08-21 12:12:28 | INFO     | src.features.regime:combined_regime_filter:254 | Combined regime filter: 22/251 signals pass all filters (8.76%)
+2025-08-21 12:12:28 | INFO     | src.strategy.mean_reversion:generate_signals:57 | Generating mean reversion signals
+2025-08-21 12:12:28 | INFO     | src.features.regime:correlation_gate:53 | Correlation gate: 178/251 signals pass threshold (70.92%)
+2025-08-21 12:12:28 | INFO     | src.strategy.mean_reversion:generate_signals:191 | Applied regime filter: 0 active signals remaining
+2025-08-21 12:12:28 | INFO     | src.strategy.mean_reversion:generate_signals:203 | Generated 0 entry signals and 1 exit signals
+2025-08-21 12:12:28 | INFO     | __main__:run_backtest_cli:131 | Generated 0 total signals
+2025-08-21 12:12:28 | INFO     | __main__:run_backtest_cli:145 | Running backtest
+2025-08-21 12:12:28 | INFO     | src.backtest.engine:run_backtest:471 | Running complete backtest
+2025-08-21 12:12:28 | INFO     | src.backtest.engine:backtest_pair:80 | Running backtest with one-bar execution delay
+2025-08-21 12:12:28 | INFO     | src.risk.manager:__init__:66 | Initialized risk manager
+2025-08-21 12:12:28 | INFO     | src.exec.policy:__init__:47 | Initialized execution policy
+2025-08-21 12:12:29 | INFO     | src.backtest.engine:_calculate_trade_stats:318 | Calculated statistics for 20 trades
+2025-08-21 12:12:29 | INFO     | src.backtest.engine:backtest_pair:229 | Backtest completed: 251 bars, Final PnL: 0.00, Max drawdown: 0.00%
+2025-08-21 12:12:29 | INFO     | src.backtest.engine:calculate_performance_metrics:410 | Performance metrics: Sharpe=0.00, Return=0.00%, MaxDD=0.00%, WinRate=0.00%
+2025-08-21 12:12:29 | INFO     | __main__:run_backtest_cli:180 | Saved report to backtest_results/usdcad_wti_report_20250821_121229.txt
+2025-08-21 12:12:29 | INFO     | __main__:run_backtest_cli:198 | Backtest completed successfully

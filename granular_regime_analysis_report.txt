@@ -1,0 +1,195 @@
+================================================================================
+GRANULAR REGIME-BASED PERFORMANCE ANALYSIS
+================================================================================
+
+============================================================
+STRATEGY: USDCAD-WTI-Kalman
+============================================================
+
+1. TIME BUCKET ANALYSIS (2-Year Periods)
+--------------------------------------------------
+   regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+2015-2016   502      60          2.96           1.49        6.67          0.22         -5.62     45.00           0.57             -0.01            30.12
+2017-2018   500     198         -4.24          -2.14       13.98         -0.15        -22.12     48.48           0.18             -0.04            99.79
+2019-2020   504      93         -2.78          -1.39        8.64         -0.16        -11.65     43.01           0.89             -0.00            46.50
+2021-2022   503      92          9.67           4.84        9.19          0.53         -9.92     35.87           0.61             -0.01            46.09
+2023-2024   502     106        -16.17          -8.12        9.70         -0.84        -19.41     33.96           0.38             -0.01            53.21
+     2025   155      33          4.33           7.04       11.45          0.62         -3.89     54.55           0.92             -0.00            53.65
+
+2. MARKET CONDITION ANALYSIS
+--------------------------------------------------
+       regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+  trending_up  1041     277         -3.48          -0.84       16.22         -0.05        -21.98     45.49           0.64             -0.01            67.05
+trending_down   787     120         -6.78          -2.17       17.32         -0.13        -19.28     37.50           0.12             -0.04            38.42
+      ranging   818     185         -6.78          -2.09       17.35         -0.12        -21.07     42.70           0.35             -0.02            56.99
+
+3. VOLATILITY REGIME ANALYSIS
+--------------------------------------------------
+    regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+   low_vol     0       0          0.00           0.00        0.00          0.00          0.00      0.00           0.00              0.00             0.00
+medium_vol     3       2         14.38        1208.04      161.43          7.48          0.00    100.00           0.00              0.05           168.00
+  high_vol  2643     580         -6.78          -0.65       10.02         -0.06        -22.12     42.76           0.34             -0.02            55.30
+
+4. MOMENTUM REGIME ANALYSIS
+--------------------------------------------------
+     regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+  strong_up   948     246         -7.02          -1.87       16.59         -0.11        -21.07     34.96           0.34             -0.02            65.39
+    weak_up   300      53         -7.02          -5.90       29.81         -0.20        -20.04     32.08           0.18             -0.02            44.52
+    neutral   245      39         -6.78          -6.98       31.56         -0.22        -21.31     43.59           0.18             -0.03            40.11
+  weak_down   254      47         -6.78          -6.73       30.98         -0.22        -21.31     59.57           0.40             -0.02            46.63
+strong_down   899     197         -3.40          -0.95       16.67         -0.06        -21.98     51.78           0.44             -0.01            55.22
+
+5. KEY REGIME INSIGHTS
+--------------------------------------------------
+Best Time Period: 2021-2022 (Return: 9.67%)
+Worst Time Period: 2023-2024 (Return: -16.17%)
+Best Market Condition: trending_up (Return: -3.48%)
+Worst Market Condition: trending_down (Return: -6.78%)
+Best Volatility Regime: medium_vol (Return: 14.38%)
+Worst Volatility Regime: high_vol (Return: -6.78%)
+Best Momentum Regime: strong_down (Return: -3.40%)
+Worst Momentum Regime: strong_up (Return: -7.02%)
+
+============================================================
+STRATEGY: USDCAD-WTI-OLS
+============================================================
+
+1. TIME BUCKET ANALYSIS (2-Year Periods)
+--------------------------------------------------
+   regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+2015-2016   502      36          7.10           3.56        3.23          1.10         -1.65     77.78          10.21              0.02            18.07
+2017-2018   500     180         -6.98          -3.52       12.59         -0.28        -15.77     47.22           0.66             -0.00            90.72
+2019-2020   504      98         22.33          11.16       10.13          1.10         -4.83     65.31           3.05              0.01            49.00
+2021-2022   503      92         10.96           5.49        8.82          0.62         -7.45     57.61           1.62              0.01            46.09
+2023-2024   502      97        -10.10          -5.07        8.56         -0.59        -15.42     48.45           0.27             -0.01            48.69
+     2025   155      45        -12.83         -20.86       16.28         -1.28        -15.54     17.78           0.14             -0.03            73.16
+
+2. MARKET CONDITION ANALYSIS
+--------------------------------------------------
+       regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+  trending_up  1041     269          9.02           2.18       14.64          0.15        -19.86     62.45           0.99             -0.00            65.12
+trending_down   787     101          7.45           2.39       18.13          0.13        -21.38     55.45           1.58              0.01            32.34
+      ranging   818     178          8.99           2.77       17.16          0.16        -20.37     34.27           0.41             -0.01            54.84
+
+3. VOLATILITY REGIME ANALYSIS
+--------------------------------------------------
+    regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+   low_vol     0       0          0.00           0.00        0.00          0.00          0.00      0.00           0.00              0.00             0.00
+medium_vol     3       3          3.92         329.61       44.05          7.48          0.00    100.00           0.00              0.03           252.00
+  high_vol  2643     545          7.45           0.71        9.75          0.07        -21.38     51.74           0.83             -0.00            51.96
+
+4. MOMENTUM REGIME ANALYSIS
+--------------------------------------------------
+     regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+  strong_up   906     231          5.53           1.54       16.37          0.09        -20.37     51.95           0.69             -0.00            64.25
+    weak_up   265      45          4.03           3.83       29.57          0.13        -20.57     55.56           1.72              0.00            42.79
+    neutral   306      26          7.45           6.13       29.83          0.21        -20.57     53.85           3.10              0.01            21.41
+  weak_down   260      52          5.36           5.19       30.36          0.17        -19.56     55.77           1.35              0.00            50.40
+strong_down   909     194          9.04           2.51       16.61          0.15        -19.56     50.00           0.75             -0.00            53.78
+
+5. KEY REGIME INSIGHTS
+--------------------------------------------------
+Best Time Period: 2019-2020 (Return: 22.33%)
+Worst Time Period: 2025 (Return: -12.83%)
+Best Market Condition: trending_up (Return: 9.02%)
+Worst Market Condition: trending_down (Return: 7.45%)
+Best Volatility Regime: high_vol (Return: 7.45%)
+Worst Volatility Regime: low_vol (Return: 0.00%)
+Best Momentum Regime: strong_down (Return: 9.04%)
+Worst Momentum Regime: weak_up (Return: 4.03%)
+
+============================================================
+STRATEGY: USDNOK-Brent-Kalman
+============================================================
+
+1. TIME BUCKET ANALYSIS (2-Year Periods)
+--------------------------------------------------
+   regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+2015-2016   502      60          4.00           2.01        6.77          0.30         -6.38     78.33           1.28              0.00            30.12
+2017-2018   500     216        -11.23          -5.66       11.15         -0.51        -15.58     52.78           1.10              0.00           108.86
+2019-2020   504      99         -4.44          -2.22        8.14         -0.27         -8.66     51.52           1.40              0.00            49.50
+2021-2022   503     118          1.12           0.56       10.74          0.05        -15.34     53.39           1.04              0.00            59.12
+2023-2024   503     162        -17.09          -8.56        7.86         -1.09        -20.73     37.65           0.13             -0.01            81.16
+     2025   155      78         -3.37          -5.48       15.14         -0.36        -10.95     33.33           0.59             -0.01           126.81
+
+2. MARKET CONDITION ANALYSIS
+--------------------------------------------------
+       regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+  trending_up  1016     319        -24.98          -6.20       14.51         -0.43        -29.96     57.37           1.58              0.01            79.12
+trending_down   682     159        -26.15          -9.66       17.09         -0.57        -30.68     32.70           0.34             -0.02            58.75
+      ranging   949     255        -26.15          -6.94       16.28         -0.43        -30.68     49.80           0.64             -0.01            67.71
+
+3. VOLATILITY REGIME ANALYSIS
+--------------------------------------------------
+    regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+   low_vol     0       0          0.00           0.00        0.00          0.00          0.00      0.00           0.00              0.00             0.00
+medium_vol     3       2        -20.30       -1704.82        9.03       -188.76        -20.30    100.00           0.00              0.03           168.00
+  high_vol  2644     731        -26.15          -2.49        9.60         -0.26        -30.77     49.25           0.86             -0.00            69.67
+
+4. MOMENTUM REGIME ANALYSIS
+--------------------------------------------------
+     regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+  strong_up   906     271        -26.15          -7.27       15.95         -0.46        -30.68     54.98           0.79             -0.00            75.38
+    weak_up   291      77        -26.15         -22.65       28.28         -0.80        -30.68     64.94           2.16              0.01            66.68
+    neutral   236      42        -23.31         -24.89       28.96         -0.86        -29.72     47.62           1.76              0.01            44.85
+  weak_down   319      70        -26.15         -20.66       30.18         -0.68        -30.68     51.43           1.18              0.00            55.30
+strong_down   895     273        -26.15          -7.36       16.49         -0.45        -30.77     39.19           0.64             -0.01            76.87
+
+5. KEY REGIME INSIGHTS
+--------------------------------------------------
+Best Time Period: 2015-2016 (Return: 4.00%)
+Worst Time Period: 2023-2024 (Return: -17.09%)
+Best Market Condition: trending_up (Return: -24.98%)
+Worst Market Condition: trending_down (Return: -26.15%)
+Best Volatility Regime: low_vol (Return: 0.00%)
+Worst Volatility Regime: high_vol (Return: -26.15%)
+Best Momentum Regime: neutral (Return: -23.31%)
+Worst Momentum Regime: strong_up (Return: -26.15%)
+
+============================================================
+STRATEGY: USDNOK-Brent-OLS
+============================================================
+
+1. TIME BUCKET ANALYSIS (2-Year Periods)
+--------------------------------------------------
+   regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+2015-2016   502      74         -5.71          -2.87        5.04         -0.57         -6.58     52.70           0.55             -0.01            37.15
+2017-2018   500     177         -3.34          -1.68       11.48         -0.15        -18.11     61.02           1.59              0.01            89.21
+2019-2020   504      81         -5.51          -2.76        7.24         -0.38        -10.14     51.85           1.83              0.00            40.50
+2021-2022   503     124          5.00           2.50        8.27          0.30         -8.40     75.81           3.79              0.01            62.12
+2023-2024   503     128         -2.01          -1.01        7.48         -0.13        -10.22     42.97           0.73             -0.00            64.13
+     2025   155      57          2.42           3.93       13.30          0.30         -5.65     29.82           1.02              0.00            92.67
+
+2. MARKET CONDITION ANALYSIS
+--------------------------------------------------
+       regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+  trending_up  1016     272         -4.74          -1.18       12.19         -0.10        -23.86     61.40           1.97              0.01            67.46
+trending_down   682     148         -6.23          -2.30       12.68         -0.18        -19.02     52.03           0.94             -0.00            54.69
+      ranging   949     221         -6.23          -1.65       13.81         -0.12        -25.52     50.23           0.89             -0.00            58.68
+
+3. VOLATILITY REGIME ANALYSIS
+--------------------------------------------------
+    regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+   low_vol     0       0          0.00           0.00        0.00          0.00          0.00      0.00           0.00              0.00             0.00
+medium_vol     3       1         -9.49        -797.36      144.88         -5.50        -11.10      0.00           0.00             -0.01            84.00
+  high_vol  2644     640         -6.23          -0.59        8.60         -0.07        -25.52     55.47           1.25              0.00            61.00
+
+4. MOMENTUM REGIME ANALYSIS
+--------------------------------------------------
+     regime  days  trades  total_return  annual_return  volatility  sharpe_ratio  max_drawdown  win_rate  profit_factor  avg_trade_return  trade_frequency
+  strong_up   877     238         -2.64          -0.76       14.08         -0.05        -24.88     53.36           1.25              0.00            68.39
+    weak_up   276      64         -6.85          -6.25       22.36         -0.28        -23.55     64.06           1.30              0.00            58.43
+    neutral   287      47         -6.23          -5.47       22.53         -0.24        -22.95     53.19           0.78             -0.00            41.27
+  weak_down   296      46         -3.33          -2.84       22.13         -0.13        -23.86     54.35           0.89             -0.00            39.16
+strong_down   911     246         -5.79          -1.60       14.08         -0.11        -25.52     55.69           1.45              0.00            68.05
+
+5. KEY REGIME INSIGHTS
+--------------------------------------------------
+Best Time Period: 2021-2022 (Return: 5.00%)
+Worst Time Period: 2015-2016 (Return: -5.71%)
+Best Market Condition: trending_up (Return: -4.74%)
+Worst Market Condition: trending_down (Return: -6.23%)
+Best Volatility Regime: low_vol (Return: 0.00%)
+Worst Volatility Regime: medium_vol (Return: -9.49%)
+Best Momentum Regime: strong_up (Return: -2.64%)
+Worst Momentum Regime: weak_up (Return: -6.85%)
