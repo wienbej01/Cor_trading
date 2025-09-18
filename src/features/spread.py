@@ -56,20 +56,16 @@ def compute_spread(
     x: pd.Series,
     beta_window: int,
     use_kalman: bool = True,
-    _recursion_depth: int = 0,
 ):
     """
     Estimate alpha,beta (RLS when use_kalman=True else OLS) in LOG domain for stability,
-    then compute a LEVEL-domain spread: S = y - exp(alpha_log) * x**beta.
+    then compute a LEVEL-domain spread: S = y - alpha * x**beta.
+
+    This implementation avoids recursive fallbacks and instead selects an effective
+    beta window based on available clean data. If there is insufficient data
+    (less than 10 usable points) the function returns empty Series aligned to the
+    original index.
     """
-    # Prevent infinite recursion
-    if _recursion_depth > 2:
-        logger.error("Maximum recursion depth exceeded in compute_spread")
-        return (
-            pd.Series(index=y.index),
-            pd.Series(index=y.index),
-            pd.Series(index=y.index),
-        )
     # Create copies to avoid modifying original series
     y = y.copy()
     x = x.copy()
@@ -83,14 +79,17 @@ def compute_spread(
     y_clean = y[mask]
     x_clean = x[mask]
 
-    # Check if we have enough data after cleaning
-    if len(y_clean) < max(beta_window, 10):
-        logger.warning(
-            f"Insufficient clean data: {len(y_clean)} < {max(beta_window, 10)}, using OLS fallback"
-        )
-        return compute_spread(
-            y, x, beta_window, use_kalman=False, _recursion_depth=_recursion_depth + 1
-        )
+    available = len(y_clean)
+    epsilon = 1e-8
+
+    # Require at least 10 clean points to proceed
+    if available < 10:
+        logger.warning(f"Insufficient clean data for compute_spread: {available} points (need >=10)")
+        empty = pd.Series(index=y.index, dtype=float)
+        return empty, empty, empty
+
+    # Determine effective beta window (bounded by available data)
+    effective_beta = max(10, min(int(beta_window), available))
 
     # Convert to log domain
     y_log = np.log(y_clean).replace([np.inf, -np.inf], np.nan)
@@ -101,17 +100,10 @@ def compute_spread(
     y_log = y_log[mask_log]
     x_log = x_log[mask_log]
 
-    # Check if we have enough data after log transformation
-    if len(y_log) < max(beta_window, 10):
-        logger.warning(
-            f"Insufficient data after log transform: {len(y_log)} < {max(beta_window, 10)}, using OLS fallback"
-        )
-        return compute_spread(
-            y, x, beta_window, use_kalman=False, _recursion_depth=_recursion_depth + 1
-        )
-
-    # Add small epsilon to prevent division by zero
-    epsilon = 1e-8
+    if len(y_log) < 10:
+        logger.warning(f"Insufficient log-transformed data: {len(y_log)} points (need >=10)")
+        empty = pd.Series(index=y.index, dtype=float)
+        return empty, empty, empty
 
     # Check for near-zero values
     if np.any(np.abs(x_log) < epsilon):
@@ -119,83 +111,49 @@ def compute_spread(
         x_log = x_log.copy()
         x_log[np.abs(x_log) < epsilon] = epsilon
 
-    # Initialize alpha and beta variables
     alpha = None
     beta = None
 
-    # Use Kalman filter (RLS) if requested and we have enough data
+    # Try RLS/Kalman first if requested
     if use_kalman:
         try:
-            # Check for numerical stability
-            y_std = np.std(y_log)
-            x_std = np.std(x_log)
+            y_std = float(np.std(y_log))
+            x_std = float(np.std(x_log))
             if y_std < epsilon or x_std < epsilon:
-                logger.warning(
-                    f"Low volatility detected: y_std={y_std}, x_std={x_std}, using OLS fallback"
-                )
-                return compute_spread(
-                    y,
-                    x,
-                    beta_window,
-                    use_kalman=False,
-                    _recursion_depth=_recursion_depth + 1,
-                )
+                logger.warning("Low volatility detected, falling back to OLS")
+                use_kalman = False
+            else:
+                alpha_log, beta = rls_beta(y_log, x_log, lam=0.995, delta=100.0)
+                if alpha_log.isna().all() or beta.isna().all():
+                    logger.warning("RLS produced invalid results, falling back to OLS")
+                    use_kalman = False
+                else:
+                    alpha = alpha_log.apply(np.exp)
+        except Exception as exc:
+            logger.warning(f"Kalman/RLS error: {exc}; falling back to OLS")
+            use_kalman = False
 
-            # Use RLS (Kalman filter) on logs
-            alpha_log, beta = rls_beta(y_log, x_log, lam=0.995, delta=100.0)
+    # OLS fallback (rolling OLS) using effective_beta
+    if not use_kalman:
+        alpha_log, beta = rolling_ols_beta(y_log, x_log, effective_beta)
+        alpha = alpha_log.apply(np.exp)
 
-            # Check for valid results
-            if alpha_log.isna().all() or beta.isna().all():
-                logger.warning("RLS produced all NaN values, using OLS fallback")
-                return compute_spread(
-                    y,
-                    x,
-                    beta_window,
-                    use_kalman=False,
-                    _recursion_depth=_recursion_depth + 1,
-                )
+    # Validate results
+    if alpha is None or beta is None or alpha.empty or beta.empty:
+        logger.error("Failed to compute alpha/beta (empty results)")
+        empty = pd.Series(index=y.index, dtype=float)
+        return empty, empty, empty
 
-            # Convert alpha from log domain
-            alpha = alpha_log.apply(np.exp)  # multiplicative intercept
-
-        except Exception as e:
-            logger.warning(f"Kalman filter error: {e}, using OLS fallback")
-            return compute_spread(
-                y,
-                x,
-                beta_window,
-                use_kalman=False,
-                _recursion_depth=_recursion_depth + 1,
-            )
-    else:
-        # Use rolling OLS
-        alpha_log, beta = rolling_ols_beta(y_log, x_log, beta_window)
-        alpha = alpha_log.apply(np.exp)  # multiplicative intercept
-
-    # Ensure alpha and beta are valid
-    if alpha is None or beta is None:
-        logger.error("Failed to compute alpha and beta")
-        return (
-            pd.Series(index=y.index),
-            pd.Series(index=y.index),
-            pd.Series(index=y.index),
-        )
-
-    # Clip extreme beta values for stability
+    # Stabilize values
     beta = beta.clip(-10, 10)
-
-    # Ensure alpha is positive
     alpha = np.maximum(alpha, epsilon)
 
-    # Compute spread in levels
-    # We need to align the original series with the computed alpha and beta
+    # Align original series with computed parameters
     y_aligned = y_clean.reindex(alpha.index)
     x_aligned = x_clean.reindex(alpha.index)
 
-    # Calculate spread: S = y - alpha * x^beta
-    S = y_aligned - (alpha * (x_aligned**beta))
+    S = y_aligned - (alpha * (x_aligned ** beta))
 
-    # Reindex to original index and forward fill
     S = S.reindex(y.index).ffill()
     alpha = alpha.reindex(y.index).ffill()
     beta = beta.reindex(y.index).ffill()

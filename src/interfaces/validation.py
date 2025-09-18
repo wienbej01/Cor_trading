@@ -285,6 +285,78 @@ class ValidationRegistry:
         )
 
 
+class ValidationInterface:
+    """Interface for comprehensive validation across modules."""
+
+    def __init__(self):
+        pass
+
+    def validate_strategy_config(self, config: Dict) -> Dict:
+        """Validate strategy configuration."""
+        try:
+            validate_trading_config(config)
+            return {"is_valid": True, "issues": []}
+        except ValidationError as e:
+            return {"is_valid": False, "issues": [str(e)]}
+
+    def validate_model_config(self, config: Dict) -> Dict:
+        """Validate model configuration."""
+        # Basic validation for model config
+        if not isinstance(config, dict):
+            return {"is_valid": False, "issues": ["Config must be a dictionary"]}
+
+        required_keys = ["model_type"]
+        missing = [k for k in required_keys if k not in config]
+        if missing:
+            return {"is_valid": False, "issues": [f"Missing required keys: {missing}"]}
+
+        return {"is_valid": True, "issues": []}
+
+    def validate_execution_config(self, config: Dict) -> Dict:
+        """Validate execution configuration."""
+        # Basic validation for execution config
+        if not isinstance(config, dict):
+            return {"is_valid": False, "issues": ["Config must be a dictionary"]}
+
+        return {"is_valid": True, "issues": []}
+
+    def validate_input_data(self, fx_data: pd.Series, comd_data: pd.Series) -> Dict:
+        """Validate input data."""
+        try:
+            validate_series_alignment(fx_data, comd_data)
+            return {"is_valid": True, "issues": []}
+        except ValidationError as e:
+            return {"is_valid": False, "issues": [str(e)]}
+
+    def validate_all_components(self, **kwargs) -> Dict:
+        """Validate all components."""
+        results = {
+            "strategy_config": {"is_valid": True, "issues": []},
+            "model_config": {"is_valid": True, "issues": []},
+            "execution_config": {"is_valid": True, "issues": []},
+            "input_data": {"is_valid": True, "issues": []},
+            "overall_valid": True
+        }
+
+        if "strategy_config" in kwargs:
+            results["strategy_config"] = self.validate_strategy_config(kwargs["strategy_config"])
+
+        if "model_config" in kwargs:
+            results["model_config"] = self.validate_model_config(kwargs["model_config"])
+
+        if "execution_config" in kwargs:
+            results["execution_config"] = self.validate_execution_config(kwargs["execution_config"])
+
+        if "fx_data" in kwargs and "commodity_data" in kwargs:
+            results["input_data"] = self.validate_input_data(kwargs["fx_data"], kwargs["commodity_data"])
+
+        results["overall_valid"] = all(
+            r["is_valid"] for r in results.values() if isinstance(r, dict) and "is_valid" in r
+        )
+
+        return results
+
+
 # Global validation registry instance
 validation_registry = ValidationRegistry()
 

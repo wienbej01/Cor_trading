@@ -9,14 +9,16 @@ from datetime import datetime
 from pathlib import Path
 import sys
 import os
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Add project root to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
 from core.config import config
 from data.yahoo_loader import download_and_align_pair
 from strategy.mean_reversion import generate_signals_with_regime_filter
 from backtest.engine import run_backtest, create_backtest_report
+from backtest.metrics import generate_run_id
 from utils.logging import setup_logging, trading_logger
 
 # Run from project root; no path modification needed
@@ -67,9 +69,12 @@ def run_backtest_cli(
     python src/run_backtest.py --pair usdcad_wti --start 2015-01-01 --end 2025-08-15
     python src/run_backtest.py --pair usdnok_brent --start 2015-01-01 --end 2025-08-15
     """
-    # Set up logging
+    # Generate run ID
+    run_id = generate_run_id()
+    
+    # Set up logging with run ID
     log_file = Path(output_dir) / f"{pair}_{start}_{end}.log"
-    setup_logging(log_level=log_level, log_file=log_file)
+    setup_logging(log_level=log_level, log_file=log_file, run_id=run_id)
 
     trading_logger.logger.info(f"Starting backtest for pair: {pair}")
     trading_logger.logger.info(f"Backtest period: {start} to {end}")
@@ -142,7 +147,7 @@ def run_backtest_cli(
 
         # Run backtest
         trading_logger.logger.info("Running backtest")
-        backtest_df, metrics = run_backtest(signals_df, pair_config)
+        backtest_df, metrics, reports_path = run_backtest(signals_df, pair_config, run_id)
 
         # Create output directory
         output_path = Path(output_dir)
@@ -192,6 +197,7 @@ def run_backtest_cli(
         print(f"Profit Factor: {metrics['profit_factor']:.2f}")
         print("=" * 60)
         print(f"Full results saved to: {output_path}")
+        print(f"Run artifacts saved to: {reports_path}")
         print("=" * 60 + "\n")
 
         trading_logger.logger.info("Backtest completed successfully")

@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
+from src.backtest.metrics import calculate_comprehensive_metrics, save_run_artifacts
+
 # Opt-in to future pandas behavior
 pd.set_option('future.no_silent_downcasting', True)
 
@@ -379,16 +381,17 @@ def create_backtest_report(df: pd.DataFrame, metrics: Dict) -> str:
     return report
 
 
-def run_backtest(signals_df: pd.DataFrame, config: Dict) -> Tuple[pd.DataFrame, Dict]:
+def run_backtest(signals_df: pd.DataFrame, config: Dict, run_id: str = None) -> Tuple[pd.DataFrame, Dict, str]:
     """
     Run complete backtest with configuration parameters.
 
     Args:
         signals_df: DataFrame with signals and market data.
         config: Configuration dictionary.
+        run_id: Optional run identifier.
 
     Returns:
-        Tuple of (backtest_results_df, performance_metrics_dict).
+        Tuple of (backtest_results_df, performance_metrics_dict, reports_path).
     """
     logger.info("Running complete backtest")
 
@@ -406,5 +409,42 @@ def run_backtest(signals_df: pd.DataFrame, config: Dict) -> Tuple[pd.DataFrame, 
 
     # Calculate performance metrics
     metrics = calculate_performance_metrics(backtest_df)
+    
+    # Extract trades data
+    trades_data = []
+    if "trade_id" in backtest_df.columns:
+        for trade_id in backtest_df["trade_id"].unique():
+            trade_df = backtest_df[backtest_df["trade_id"] == trade_id]
+            if len(trade_df) > 0 and trade_df["delayed_signal"].iloc[0] != 0:
+                # Get first and last rows for trade entry/exit info
+                first_row = trade_df.iloc[0]
+                last_row = trade_df.iloc[-1]
+                
+                trade_info = {
+                    "trade_id": trade_id,
+                    "entry_date": first_row.name,
+                    "exit_date": last_row.name,
+                    "direction": first_row["delayed_signal"],
+                    "duration": len(trade_df),
+                    "pnl": trade_df["total_pnl"].sum(),
+                    "fx_entry": first_row["fx_price"],
+                    "fx_exit": last_row["fx_price"],
+                    "comd_entry": first_row["comd_price"],
+                    "comd_exit": last_row["comd_price"]
+                }
+                if "spread_z" in trade_df.columns:
+                    trade_info["entry_z"] = first_row["spread_z"]
+                    trade_info["exit_z"] = last_row["spread_z"]
+                
+                trades_data.append(trade_info)
+    
+    trades_df = pd.DataFrame(trades_data)
+    
+    # Calculate comprehensive metrics
+    comprehensive_metrics = calculate_comprehensive_metrics(backtest_df, trades_df, config)
+    
+    # Save run artifacts
+    pair_name = config.get("pair", "unknown")
+    reports_path = save_run_artifacts(pair_name, backtest_df, trades_df, config, comprehensive_metrics, run_id)
 
-    return backtest_df, metrics
+    return backtest_df, comprehensive_metrics, reports_path

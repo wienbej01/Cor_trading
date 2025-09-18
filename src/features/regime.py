@@ -118,51 +118,168 @@ def dcc_garch_filter(
     return valid_signals
 
 
+def volatility_regime_quantiles(
+    series: pd.Series,
+    window: int = 20,
+    quantile_low: float = 0.33,
+    quantile_high: float = 0.67,
+    ref_period: int = 252,
+) -> pd.Series:
+    """
+    Detect volatility regime using rolling quantiles of realized volatility.
+    
+    Args:
+        series: Time series to analyze.
+        window: Window for rolling volatility calculation.
+        quantile_low: Lower quantile for low vol regime (default 33rd percentile).
+        quantile_high: Upper quantile for high vol regime (default 67th percentile).
+        ref_period: Reference period for quantile calculation (default 1 year).
+    
+    Returns:
+        Series with regime labels: 0=low vol, 1=normal vol, 2=high vol.
+    
+    Raises:
+        ValueError: If parameters are invalid.
+    """
+    if window < 5:
+        raise ValueError("Volatility window must be at least 5")
+    if not (0 < quantile_low < quantile_high < 1):
+        raise ValueError("Quantiles must satisfy 0 < low < high < 1")
+
+    logger.debug(f"Detecting volatility regime with quantiles low={quantile_low}, high={quantile_high}")
+
+    # Calculate returns
+    returns = series.pct_change().fillna(0)
+
+    # Calculate rolling realized volatility
+    vol = returns.rolling(window=window).std() * np.sqrt(252)  # Annualized
+
+    # Compute rolling quantiles over reference period
+    vol_low_q = vol.rolling(ref_period, min_periods=window).quantile(quantile_low)
+    vol_high_q = vol.rolling(ref_period, min_periods=window).quantile(quantile_high)
+
+    # Classify regime
+    regime = pd.Series(1, index=vol.index)  # Default to normal
+
+    # Low volatility regime
+    regime[vol <= vol_low_q] = 0
+
+    # High volatility regime
+    regime[vol >= vol_high_q] = 2
+
+    return regime
+
+
 def volatility_regime(
     series: pd.Series,
     window: int = 20,
-    high_vol_threshold: float = 0.03,  # Increased from 0.02 to 0.03 to be less restrictive
-    low_vol_threshold: float = 0.003,  # Decreased from 0.005 to 0.003 to be less restrictive
+    high_vol_threshold: float = 0.03,
+    low_vol_threshold: float = 0.003,
+    use_quantiles: bool = True,
+    quantile_low: float = 0.33,
+    quantile_high: float = 0.67,
+    ref_period: int = 252,
 ) -> pd.Series:
     """
-    Detect volatility regime of a series.
-
+    Detect volatility regime of a series (wrapper to choose method).
+    
     Args:
         series: Time series to analyze.
         window: Window size for volatility calculation.
         high_vol_threshold: Threshold for high volatility regime (as decimal).
         low_vol_threshold: Threshold for low volatility regime (as decimal).
-
+        use_quantiles: If True, use quantile-based classification; else use fixed thresholds.
+        quantile_low: Lower quantile for low vol (if use_quantiles=True).
+        quantile_high: Upper quantile for high vol (if use_quantiles=True).
+        ref_period: Reference period for quantiles (if use_quantiles=True).
+    
     Returns:
         Series with regime labels: 0=low vol, 1=normal vol, 2=high vol.
-
+    
     Raises:
         ValueError: If parameters are invalid.
     """
     if window < 5:
         raise ValueError("Volatility window must be at least 5")
 
-    if high_vol_threshold <= low_vol_threshold:
-        raise ValueError(
-            "High volatility threshold must be greater than low volatility threshold"
+    if use_quantiles:
+        return volatility_regime_quantiles(
+            series, window, quantile_low, quantile_high, ref_period
         )
+    else:
+        # Legacy fixed threshold implementation
+        if high_vol_threshold <= low_vol_threshold:
+            raise ValueError(
+                "High volatility threshold must be greater than low volatility threshold"
+            )
+        logger.debug(f"Detecting volatility regime with fixed thresholds (legacy)")
+        returns = series.pct_change().fillna(0)
+        volatility = returns.rolling(window=window).std()
+        regime = pd.Series(1, index=volatility.index)
+        regime[volatility <= low_vol_threshold] = 0
+        regime[volatility >= high_vol_threshold] = 2
+        return regime
 
-    logger.debug(f"Detecting volatility regime with window={window}")
 
-    # Calculate returns
-    returns = series.pct_change().fillna(0)
+def roc_hp_trend_regime(
+    series: pd.Series,
+    roc_window: int = 20,
+    hp_lambda: int = 1600,
+    trend_threshold: float = 0.015,
+) -> pd.Series:
+    """
+    Detect trend regime using Rate of Change (ROC) and Hodrick-Prescott (HP) filter slope.
+    
+    Args:
+        series: Time series to analyze.
+        roc_window: Window for ROC calculation.
+        hp_lambda: Smoothing parameter for HP filter (1600 for daily data).
+        trend_threshold: Threshold for significant trend/slope (as decimal).
+    
+    Returns:
+        Series with regime labels: -1=downtrend, 0=range-bound, 1=uptrend.
+    
+    Raises:
+        ValueError: If parameters are invalid.
+    """
+    if roc_window < 5:
+        raise ValueError("ROC window must be at least 5")
+    if hp_lambda <= 0:
+        raise ValueError("HP lambda must be positive")
 
-    # Calculate rolling volatility
-    volatility = returns.rolling(window=window).std()
+    logger.debug(f"Detecting ROC/HP trend regime with roc_window={roc_window}, hp_lambda={hp_lambda}")
+
+    # Rate of Change (ROC)
+    roc = (series / series.shift(roc_window) - 1).fillna(0)
+
+    # Hodrick-Prescott filter for trend component
+    try:
+        from statsmodels.tsa.filters.hp_filter import hpfilter
+        trend, cycle = hpfilter(series.dropna(), lamb=hp_lambda)
+        # Extend trend to full index
+        trend = trend.reindex(series.index, method='ffill').fillna(method='bfill')
+        # Compute slope of trend (simple difference as proxy for slope)
+        trend_slope = trend.diff().fillna(0) / series.pct_change().fillna(0.001)  # Normalize by return
+    except ImportError:
+        logger.warning("statsmodels not available; using ROC only for trend")
+        trend_slope = pd.Series(0, index=series.index)
+    except Exception as e:
+        logger.warning(f"HP filter failed: {e}; using ROC only")
+        trend_slope = pd.Series(0, index=series.index)
+
+    # Combined signal: average normalized ROC and trend_slope
+    roc_norm = roc / roc.rolling(252).std().fillna(0.01)  # Normalize by long-term vol
+    slope_norm = trend_slope / trend_slope.rolling(20).std().fillna(0.01)
+    combined_trend = (roc_norm + slope_norm) / 2
 
     # Classify regime
-    regime = pd.Series(1, index=volatility.index)  # Default to normal
+    regime = pd.Series(0, index=series.index)  # Default to range-bound
 
-    # Low volatility regime
-    regime[volatility <= low_vol_threshold] = 0
+    # Uptrend
+    regime[combined_trend > trend_threshold] = 1
 
-    # High volatility regime
-    regime[volatility >= high_vol_threshold] = 2
+    # Downtrend
+    regime[combined_trend < -trend_threshold] = -1
 
     return regime
 
@@ -170,43 +287,38 @@ def volatility_regime(
 def trend_regime(
     series: pd.Series,
     window: int = 20,
-    trend_threshold: float = 0.015,  # Increased from 0.01 to 0.015 to be less restrictive
+    trend_threshold: float = 0.015,
+    use_roc_hp: bool = True,
 ) -> pd.Series:
     """
-    Detect trend regime of a series.
-
+    Detect trend regime of a series (wrapper to choose method).
+    
     Args:
         series: Time series to analyze.
         window: Window size for trend calculation.
         trend_threshold: Threshold for significant trend (as decimal).
-
+        use_roc_hp: If True, use ROC/HP method; else use legacy cumulative returns.
+    
     Returns:
         Series with regime labels: -1=downtrend, 0=range-bound, 1=uptrend.
-
+    
     Raises:
         ValueError: If parameters are invalid.
     """
     if window < 5:
         raise ValueError("Trend window must be at least 5")
 
-    logger.debug(f"Detecting trend regime with window={window}")
-
-    # Calculate returns
-    returns = series.pct_change().fillna(0)
-
-    # Calculate cumulative returns over window
-    cumulative_returns = returns.rolling(window=window).sum()
-
-    # Classify regime
-    regime = pd.Series(0, index=cumulative_returns.index)  # Default to range-bound
-
-    # Uptrend
-    regime[cumulative_returns > trend_threshold] = 1
-
-    # Downtrend
-    regime[cumulative_returns < -trend_threshold] = -1
-
-    return regime
+    if use_roc_hp:
+        return roc_hp_trend_regime(series, window, 1600, trend_threshold)
+    else:
+        # Legacy implementation
+        logger.debug(f"Detecting trend regime with window={window} (legacy)")
+        returns = series.pct_change().fillna(0)
+        cumulative_returns = returns.rolling(window=window).sum()
+        regime = pd.Series(0, index=cumulative_returns.index)
+        regime[cumulative_returns > trend_threshold] = 1
+        regime[cumulative_returns < -trend_threshold] = -1
+        return regime
 
 
 class TDistrHMM(hmm.GaussianHMM):

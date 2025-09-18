@@ -6,8 +6,50 @@ Provides centralized logging setup and utilities.
 import sys
 from pathlib import Path
 from typing import Optional
+import subprocess
+import os
 
 from loguru import logger
+
+
+def get_git_info() -> dict:
+    """
+    Get git repository information.
+    
+    Returns:
+        Dictionary with git information (commit SHA, branch, etc.)
+    """
+    try:
+        # Get current commit SHA
+        commit_sha = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        
+        # Get current branch
+        branch = subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        
+        # Get git status
+        status = subprocess.check_output(
+            ["git", "status", "--porcelain"],
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        is_clean = len(status) == 0
+        
+        return {
+            "commit_sha": commit_sha,
+            "branch": branch,
+            "is_clean": is_clean
+        }
+    except Exception:
+        return {
+            "commit_sha": "unknown",
+            "branch": "unknown",
+            "is_clean": False
+        }
 
 
 def setup_logging(
@@ -16,6 +58,8 @@ def setup_logging(
     log_format: Optional[str] = None,
     rotation: str = "10 MB",
     retention: str = "30 days",
+    run_id: Optional[str] = None,
+    seed: Optional[int] = None,
 ) -> None:
     """
     Set up logging configuration for the application.

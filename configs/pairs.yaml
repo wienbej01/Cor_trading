@@ -27,11 +27,22 @@ usdcad_wti:
   
   # Trading thresholds
   thresholds:
-    entry_z: 2.0         # Stricter Z-score threshold for entry
-    exit_z: 1.0          # Stricter Z-score threshold for exit
+    entry_z: 2.0         # Base Z-score threshold for entry (overridden by regime)
+    exit_z: 1.0          # Base Z-score threshold for exit (overridden by regime)
     stop_z: 3.5          # Z-score threshold for stop loss
     adf_p: 0.05          # ADF test p-value threshold
     min_abs_corr: 0.4    # Minimum absolute correlation threshold
+    # Regime-specific z-scores
+    regime_zscores:
+      low_vol:
+        entry_z: 1.8
+        exit_z: 0.9
+      normal_vol:
+        entry_z: 2.0
+        exit_z: 1.0
+      high_vol:
+        entry_z: 2.5
+        exit_z: 1.2
   
   # Time stop
   time_stop:

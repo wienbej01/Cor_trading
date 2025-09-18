@@ -9,17 +9,18 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
-from src.features.indicators import atr_proxy, zscore_robust
-from src.features.spread import compute_spread
-from src.features.regime import combined_regime_filter, correlation_gate
+from features.indicators import atr_proxy, zscore_robust
+from features.spread import compute_spread
+from features.regime import combined_regime_filter, correlation_gate, volatility_regime, trend_regime
+from .filters import AllowTradeContext
 from statsmodels.tsa.stattools import adfuller
-from src.features.cointegration import ou_half_life, hurst_exponent
+from features.cointegration import ou_half_life, hurst_exponent
 
-# Import ensemble model
-from src.ml.ensemble import create_ensemble_model, ModelConfig
+# Import ensemble model (commented to avoid circular import with h1_mean_reversion)
+# from ml.ensemble import create_ensemble_model, ModelConfig
 
 # Import validation interfaces for consistent error handling
-from src.interfaces.validation import (
+from interfaces.validation import (
     validate_series_alignment,
     validate_trading_config,
     safe_parameter_extraction,
@@ -117,28 +118,49 @@ def generate_signals(
     result["fx_price"] = fx_series
     result["comd_price"] = comd_series
 
-    # Compute spread using ensemble model if specified
-    if model_name != "default":
-        result = _generate_signals_with_model(
-            result, fx_series, comd_series, config, model_name
-        )
-    else:
-        # Compute spread using existing method
-        spread, alpha, beta = compute_spread(
-            fx_series, comd_series, beta_window, use_kalman
-        )
-        result["spread"] = spread
-        result["alpha"] = alpha
-        result["beta"] = beta
+    # Compute spread using existing method (ensemble disabled due to circular import)
+    # if model_name != "default":
+    #     result = _generate_signals_with_model(
+    #         result, fx_series, comd_series, config, model_name
+    #     )
+    # else:
+    spread, alpha, beta = compute_spread(
+        fx_series, comd_series, beta_window, use_kalman
+    )
+    result["spread"] = spread
+    result["alpha"] = alpha
+    result["beta"] = beta
 
-        # Compute robust z-score
-        z = zscore_robust(spread, z_window).rename("z")
-        result["spread_z"] = z
+    # Compute robust z-score
+    z = zscore_robust(spread, z_window).rename("z")
+    result["spread_z"] = z
 
     # Regime gating (corr + cointegration diagnostics)
     regime_ok = correlation_gate(fx_series, comd_series, corr_window, min_abs_corr)
 
-    # Structural diagnostics evaluated once over full sample (used as soft prior, not a hard gate)
+    # Compute detailed regimes for AllowTradeContext
+    vol_window = config["regime"].get("volatility_window", 20)
+    trend_window = config["regime"].get("trend_window", 20)
+    use_roc_hp = config["regime"].get("use_roc_hp", True)
+    use_vol_quantiles = config["regime"].get("use_vol_quantiles", True)
+    
+    fx_vol_regime = volatility_regime(
+        fx_series, vol_window, use_quantiles=use_vol_quantiles
+    )
+    comd_vol_regime = volatility_regime(
+        comd_series, vol_window, use_quantiles=use_vol_quantiles
+    )
+    fx_trend_regime = trend_regime(
+        fx_series, trend_window, use_roc_hp=use_roc_hp
+    )
+    comd_trend_regime = trend_regime(
+        comd_series, trend_window, use_roc_hp=use_roc_hp
+    )
+    
+    # Combined regime series (e.g., mean of trend regimes for simplicity; enhance as needed)
+    combined_regime = (fx_trend_regime + comd_trend_regime) / 2
+
+    # Structural diagnostics evaluated once over full sample (used as soft prior, not a hard block)
     p_adf = adf_pvalue(spread)
     adf_threshold = float(config.get("thresholds", {}).get("adf_p", 0.05))
     adf_ok = p_adf <= adf_threshold
@@ -156,13 +178,22 @@ def generate_signals(
     hurst_ok = (hurst_val < 0.6)
     coint_ok = adf_ok and hl_ok and hurst_ok
 
-    # External regime filter from caller (HMM/trend/vol) if provided
+    # External regime filter from caller if provided
     if regime_filter is not None:
-        ext_gate = regime_filter.reindex(result.index).fillna(False)
+        ext_gate = regime_filter.reindex(result.index).fillna(True)
     else:
         ext_gate = pd.Series(True, index=result.index)
 
-    # Final good_regime gate: correlation AND external regime; structural signal scales thresholds (not a hard block)
+    # Initialize AllowTradeContext for pre-entry gating
+    filter_ctx = AllowTradeContext(
+        config=config,
+        current_regime=combined_regime,
+        fx_vol_regime=fx_vol_regime,
+        comd_vol_regime=comd_vol_regime,
+        liquidity_proxy=1.0,  # Placeholder; enhance with real liquidity metric
+    )
+
+    # Basic correlation gate still applies
     good_regime = regime_ok & ext_gate
 
     # Persist diagnostics
@@ -182,9 +213,17 @@ def generate_signals(
     entry_z_dyn = (entry_z * structural_scale * vol_scale).clip(lower=0.8)
     exit_z_dyn = (exit_z * (1.0 / structural_scale) * vol_scale).clip(upper=1.25)
 
-    # Entries/exits
+    # Entries/exits with AllowTradeContext gate
     enter_long = (z <= -entry_z_dyn) & good_regime
     enter_short = (z >= entry_z_dyn) & good_regime
+    # Apply trade context filter to entries (time-sensitive, so per-timestamp)
+    for idx in result.index:
+        if enter_long.loc[idx] or enter_short.loc[idx]:
+            if not filter_ctx.accept(idx):
+                enter_long.loc[idx] = False
+                enter_short.loc[idx] = False
+                logger.debug(f"Entry blocked by context filter at {idx}")
+    
     exit_rule = z.abs() <= exit_z_dyn
 
     # Persist thresholds for diagnostics
@@ -444,166 +483,166 @@ def generate_signals_with_regime_filter(
     return signals_df
 
 
-def _generate_signals_with_model(
-    result: pd.DataFrame,
-    fx_series: pd.Series,
-    comd_series: pd.Series,
-    config: Dict,
-    model_name: str,
-) -> pd.DataFrame:
-    """
-    Generate signals using a specific model from the ensemble.
-
-    Args:
-        result: Result DataFrame to populate.
-        fx_series: FX time series.
-        comd_series: Commodity time series.
-        config: Configuration dictionary.
-        model_name: Name of the model to use.
-
-    Returns:
-        Updated result DataFrame.
-    """
-    try:
-        # Create ensemble model
-        model_config = ModelConfig()
-        ensemble = create_ensemble_model(model_config)
-
-        # Prepare features for the model
-        features = _prepare_features_for_model(fx_series, comd_series, config)
-
-        # For now, we'll use a simple approach to demonstrate model integration
-        # In practice, this would involve training the model and using it for predictions
-
-        # Compute spread using existing method as fallback
-        beta_window = config["lookbacks"]["beta_window"]
-        use_kalman = config.get("use_kalman", True)
-        spread, alpha, beta = compute_spread(
-            fx_series, comd_series, beta_window, use_kalman
-        )
-        result["spread"] = spread
-        result["alpha"] = alpha
-        result["beta"] = beta
-
-        # Compute robust z-score
-        z_window = config["lookbacks"]["z_window"]
-        z = zscore_robust(spread, z_window).rename("z")
-        result["spread_z"] = z
-
-        logger.info(f"Generated signals using {model_name} model")
-    except Exception as e:
-        logger.warning(
-            f"Failed to generate signals with {model_name} model, using default: {e}"
-        )
-        # Fallback to default method
-        beta_window = config["lookbacks"]["beta_window"]
-        use_kalman = config.get("use_kalman", True)
-        spread, alpha, beta = compute_spread(
-            fx_series, comd_series, beta_window, use_kalman
-        )
-        result["spread"] = spread
-        result["alpha"] = alpha
-        result["beta"] = beta
-
-        # Compute robust z-score
-        z_window = config["lookbacks"]["z_window"]
-        z = zscore_robust(spread, z_window).rename("z")
-        result["spread_z"] = z
-
-    return result
-
-
-def _prepare_features_for_model(
-    fx_series: pd.Series, comd_series: pd.Series, config: Dict
-) -> pd.DataFrame:
-    """
-    Prepare features for model training/prediction.
-
-    Args:
-        fx_series: FX time series.
-        comd_series: Commodity time series.
-        config: Configuration dictionary.
-
-    Returns:
-        DataFrame with prepared features.
-    """
-    # Create features DataFrame
-    features = pd.DataFrame(index=fx_series.index)
-    features["fx_price"] = fx_series
-    features["comd_price"] = comd_series
-
-    # Add returns
-    features["fx_returns"] = fx_series.pct_change()
-    features["comd_returns"] = comd_series.pct_change()
-
-    # Add rolling statistics
-    lookback_windows = [5, 10, 20, 60]
-    for window in lookback_windows:
-        features[f"fx_vol_{window}"] = features["fx_returns"].rolling(window).std()
-        features[f"comd_vol_{window}"] = features["comd_returns"].rolling(window).std()
-        features[f"fx_ma_{window}"] = fx_series.rolling(window).mean()
-        features[f"comd_ma_{window}"] = comd_series.rolling(window).mean()
-
-    # Add spread-related features
-    beta_window = config["lookbacks"]["beta_window"]
-    use_kalman = config.get("use_kalman", True)
-    spread, alpha, beta = compute_spread(
-        fx_series, comd_series, beta_window, use_kalman
-    )
-    features["spread"] = spread
-    features["alpha"] = alpha
-    features["beta"] = beta
-
-    # Add z-score features
-    z_window = config["lookbacks"]["z_window"]
-    z = zscore_robust(spread, z_window)
-    features["spread_z"] = z
-
-    # Drop rows with NaN values
-    features = features.dropna()
-
-    return features
+# def _generate_signals_with_model(
+#     result: pd.DataFrame,
+#     fx_series: pd.Series,
+#     comd_series: pd.Series,
+#     config: Dict,
+#     model_name: str,
+# ) -> pd.DataFrame:
+#     """
+#     Generate signals using a specific model from the ensemble (disabled due to circular import).
+#
+#     Args:
+#         result: Result DataFrame to populate.
+#         fx_series: FX time series.
+#         comd_series: Commodity time series.
+#         config: Configuration dictionary.
+#         model_name: Name of the model to use.
+#
+#     Returns:
+#         Updated result DataFrame.
+#     """
+#     try:
+#         # Create ensemble model
+#         model_config = ModelConfig()
+#         ensemble = create_ensemble_model(model_config)
+#
+#         # Prepare features for the model
+#         features = _prepare_features_for_model(fx_series, comd_series, config)
+#
+#         # For now, we'll use a simple approach to demonstrate model integration
+#         # In practice, this would involve training the model and using it for predictions
+#
+#         # Compute spread using existing method as fallback
+#         beta_window = config["lookbacks"]["beta_window"]
+#         use_kalman = config.get("use_kalman", True)
+#         spread, alpha, beta = compute_spread(
+#             fx_series, comd_series, beta_window, use_kalman
+#         )
+#         result["spread"] = spread
+#         result["alpha"] = alpha
+#         result["beta"] = beta
+#
+#         # Compute robust z-score
+#         z_window = config["lookbacks"]["z_window"]
+#         z = zscore_robust(spread, z_window).rename("z")
+#         result["spread_z"] = z
+#
+#         logger.info(f"Generated signals using {model_name} model")
+#     except Exception as e:
+#         logger.warning(
+#             f"Failed to generate signals with {model_name} model, using default: {e}"
+#         )
+#         # Fallback to default method
+#         beta_window = config["lookbacks"]["beta_window"]
+#         use_kalman = config.get("use_kalman", True)
+#         spread, alpha, beta = compute_spread(
+#             fx_series, comd_series, beta_window, use_kalman
+#         )
+#         result["spread"] = spread
+#         result["alpha"] = alpha
+#         result["beta"] = beta
+#
+#         # Compute robust z-score
+#         z_window = config["lookbacks"]["z_window"]
+#         z = zscore_robust(spread, z_window).rename("z")
+#         result["spread_z"] = z
+#
+#     return result
 
 
-def generate_signals_with_ensemble(
-    fx_series: pd.Series,
-    comd_series: pd.Series,
-    config: Dict,
-    regime_filter: Optional[pd.Series] = None,
-) -> pd.DataFrame:
-    """
-    Generate signals using ensemble model predictions.
+# def _prepare_features_for_model(
+#     fx_series: pd.Series, comd_series: pd.Series, config: Dict
+# ) -> pd.DataFrame:
+#     """
+#     Prepare features for model training/prediction (disabled due to circular import).
+#
+#     Args:
+#         fx_series: FX time series.
+#         comd_series: Commodity time series.
+#         config: Configuration dictionary.
+#
+#     Returns:
+#         DataFrame with prepared features.
+#     """
+#     # Create features DataFrame
+#     features = pd.DataFrame(index=fx_series.index)
+#     features["fx_price"] = fx_series
+#     features["comd_price"] = comd_series
+#
+#     # Add returns
+#     features["fx_returns"] = fx_series.pct_change()
+#     features["comd_returns"] = comd_series.pct_change()
+#
+#     # Add rolling statistics
+#     lookback_windows = [5, 10, 20, 60]
+#     for window in lookback_windows:
+#         features[f"fx_vol_{window}"] = features["fx_returns"].rolling(window).std()
+#         features[f"comd_vol_{window}"] = features["comd_returns"].rolling(window).std()
+#         features[f"fx_ma_{window}"] = fx_series.rolling(window).mean()
+#         features[f"comd_ma_{window}"] = comd_series.rolling(window).mean()
+#
+#     # Add spread-related features
+#     beta_window = config["lookbacks"]["beta_window"]
+#     use_kalman = config.get("use_kalman", True)
+#     spread, alpha, beta = compute_spread(
+#         fx_series, comd_series, beta_window, use_kalman
+#     )
+#     features["spread"] = spread
+#     features["alpha"] = alpha
+#     features["beta"] = beta
+#
+#     # Add z-score features
+#     z_window = config["lookbacks"]["z_window"]
+#     z = zscore_robust(spread, z_window)
+#     features["spread_z"] = z
+#
+#     # Drop rows with NaN values
+#     features = features.dropna()
+#
+#     return features
 
-    Args:
-        fx_series: FX time series.
-        comd_series: Commodity time series.
-        config: Configuration dictionary.
-        regime_filter: Optional boolean series for regime filtering.
 
-    Returns:
-        DataFrame with ensemble signals and related metrics.
-    """
-    logger.info("Generating signals with ensemble model")
-
-    # Create ensemble model
-    model_config = ModelConfig()
-    ensemble = create_ensemble_model(model_config)
-
-    # Prepare features
-    features = _prepare_features_for_model(fx_series, comd_series, config)
-
-    # Generate ensemble prediction
-    ensemble_pred = ensemble.predict_ensemble(features)
-
-    # Create result DataFrame with ensemble predictions
-    result = pd.DataFrame(index=fx_series.index)
-    result["fx_price"] = fx_series
-    result["comd_price"] = comd_series
-
-    # For now, we'll use the existing signal generation logic
-    # but in practice, we would use the ensemble predictions
-
-    return generate_signals(fx_series, comd_series, config, regime_filter)
+# def generate_signals_with_ensemble(
+#     fx_series: pd.Series,
+#     comd_series: pd.Series,
+#     config: Dict,
+#     regime_filter: Optional[pd.Series] = None,
+# ) -> pd.DataFrame:
+#     """
+#     Generate signals using ensemble model predictions.
+#
+#     Args:
+#         fx_series: FX time series.
+#         comd_series: Commodity time series.
+#         config: Configuration dictionary.
+#         regime_filter: Optional boolean series for regime filtering.
+#
+#     Returns:
+#         DataFrame with ensemble signals and related metrics.
+#     """
+#     logger.info("Generating signals with ensemble model")
+#
+#     # Create ensemble model
+#     model_config = ModelConfig()
+#     ensemble = create_ensemble_model(model_config)
+#
+#     # Prepare features
+#     features = _prepare_features_for_model(fx_series, comd_series, config)
+#
+#     # Generate ensemble prediction
+#     ensemble_pred = ensemble.predict_ensemble(features)
+#
+#     # Create result DataFrame with ensemble predictions
+#     result = pd.DataFrame(index=fx_series.index)
+#     result["fx_price"] = fx_series
+#     result["comd_price"] = comd_series
+#
+#     # For now, we'll use the existing signal generation logic
+#     # but in practice, we would use the ensemble predictions
+#
+#     return generate_signals(fx_series, comd_series, config, regime_filter)
 
 
 def calculate_d1_position_sizes(

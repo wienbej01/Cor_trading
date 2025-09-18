@@ -1,37 +1,67 @@
 """
 Machine learning filter module for FX-Commodity correlation arbitrage strategy.
-This module is a placeholder for future ML-based signal filtering.
+Implements ML-based signal filtering with comprehensive feature engineering.
 """
 
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Tuple
 
 import numpy as np
 import pandas as pd
 from loguru import logger
 
+# Import feature engineering functions
+from src.ml.feature_engineering import (
+    create_comprehensive_features,
+    create_training_labels
+)
+
+# Try to import sklearn for actual ML implementation
+try:
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    logger.warning("sklearn not available, using stub implementation")
+
 
 class MLSignalFilter:
     """
-    Stub class for ML-based signal filtering.
-    This is a placeholder for future implementation.
+    ML-based signal filter for trading signals.
+    Filters signals based on predicted profitability.
     """
 
-    def __init__(self, model_path: Optional[str] = None):
+    def __init__(self, model_path: Optional[str] = None, **model_params):
         """
         Initialize the ML signal filter.
 
         Args:
-            model_path: Path to saved ML model (not used in stub).
+            model_path: Path to saved ML model.
+            **model_params: Parameters for the ML model.
         """
         self.model_path = model_path
+        self.model_params = model_params
         self.is_trained = False
-        logger.info("Initialized ML signal filter (stub implementation)")
+        self.model = None
+        self.feature_names = None
+        
+        # Initialize model if sklearn is available
+        if SKLEARN_AVAILABLE:
+            self.model = RandomForestClassifier(
+                n_estimators=model_params.get('n_estimators', 100),
+                max_depth=model_params.get('max_depth', 10),
+                random_state=model_params.get('random_state', 42),
+                n_jobs=-1
+            )
+        
+        logger.info("Initialized ML signal filter")
 
     def train(
         self, features: pd.DataFrame, labels: pd.Series, validation_split: float = 0.2
     ) -> Dict:
         """
-        Train the ML model (stub implementation).
+        Train the ML model.
 
         Args:
             features: Feature DataFrame for training.
@@ -39,89 +69,152 @@ class MLSignalFilter:
             validation_split: Fraction of data to use for validation.
 
         Returns:
-            Dictionary with training metrics (empty in stub).
+            Dictionary with training metrics.
         """
-        logger.warning("train called but not implemented (stub)")
-
-        # Stub implementation - just validate inputs
+        if not SKLEARN_AVAILABLE:
+            logger.warning("sklearn not available, using stub training")
+            return self._stub_train(features, labels, validation_split)
+            
         if len(features) != len(labels):
             raise ValueError("Features and labels must have the same length")
 
         if validation_split <= 0 or validation_split >= 1:
             raise ValueError("Validation split must be between 0 and 1")
 
+        # Store feature names
+        self.feature_names = features.columns.tolist()
+
+        # Split data
+        X_train, X_val, y_train, y_val = train_test_split(
+            features, labels, test_size=validation_split, random_state=42, stratify=labels
+        )
+
+        # Train model
+        self.model.fit(X_train, y_train)
         self.is_trained = True
 
-        # Return empty metrics
+        # Validate model
+        y_pred = self.model.predict(X_val)
+        
+        # Calculate metrics
+        metrics = {
+            "train_accuracy": self.model.score(X_train, y_train),
+            "val_accuracy": accuracy_score(y_val, y_pred),
+            "val_precision": precision_score(y_val, y_pred, zero_division=0),
+            "val_recall": recall_score(y_val, y_pred, zero_division=0),
+            "val_f1": f1_score(y_val, y_pred, zero_division=0),
+        }
+
+        logger.info(f"Model trained - Validation F1: {metrics['val_f1']:.4f}")
+        return metrics
+        
+    def _stub_train(
+        self, features: pd.DataFrame, labels: pd.Series, validation_split: float = 0.2
+    ) -> Dict:
+        """Stub training implementation."""
+        self.is_trained = True
         return {
             "train_accuracy": 0.0,
             "val_accuracy": 0.0,
-            "train_loss": 0.0,
-            "val_loss": 0.0,
+            "val_precision": 0.0,
+            "val_recall": 0.0,
+            "val_f1": 0.0,
         }
 
     def predict(self, features: pd.DataFrame) -> np.ndarray:
         """
-        Make predictions using the trained model (stub implementation).
+        Make predictions using the trained model.
 
         Args:
             features: Feature DataFrame for prediction.
 
         Returns:
-            Array of predictions (all 1s in stub).
+            Array of predictions.
         """
-        logger.warning("predict called but not implemented (stub)")
-
+        if not SKLEARN_AVAILABLE:
+            logger.warning("sklearn not available, using stub prediction")
+            return self._stub_predict(features)
+            
         if not self.is_trained:
             logger.warning("Model not trained, returning default predictions")
+            return np.ones(len(features))
 
-        # Return array of 1s (accept all signals)
+        # Ensure feature columns match training data
+        if self.feature_names is not None:
+            features = features.reindex(columns=self.feature_names, fill_value=0)
+
+        return self.model.predict(features)
+        
+    def _stub_predict(self, features: pd.DataFrame) -> np.ndarray:
+        """Stub prediction implementation."""
         return np.ones(len(features))
 
     def predict_proba(self, features: pd.DataFrame) -> np.ndarray:
         """
-        Get prediction probabilities (stub implementation).
+        Get prediction probabilities.
 
         Args:
             features: Feature DataFrame for prediction.
 
         Returns:
-            Array of prediction probabilities (all 0.5 in stub).
+            Array of prediction probabilities.
         """
-        logger.warning("predict_proba called but not implemented (stub)")
-
+        if not SKLEARN_AVAILABLE:
+            logger.warning("sklearn not available, using stub probabilities")
+            return self._stub_predict_proba(features)
+            
         if not self.is_trained:
             logger.warning("Model not trained, returning default probabilities")
+            return np.full((len(features), 2), [0.5, 0.5])
 
-        # Return array of 0.5s (neutral probability)
+        # Ensure feature columns match training data
+        if self.feature_names is not None:
+            features = features.reindex(columns=self.feature_names, fill_value=0)
+
+        return self.model.predict_proba(features)
+        
+    def _stub_predict_proba(self, features: pd.DataFrame) -> np.ndarray:
+        """Stub probability prediction implementation."""
         return np.full((len(features), 2), [0.5, 0.5])
 
     def save_model(self, path: str) -> None:
         """
-        Save the trained model (stub implementation).
+        Save the trained model.
 
         Args:
             path: Path to save the model.
         """
-        logger.warning("save_model called but not implemented (stub)")
-        pass
+        if not SKLEARN_AVAILABLE:
+            logger.warning("sklearn not available, cannot save model")
+            return
+            
+        import joblib
+        joblib.dump(self.model, path)
+        logger.info(f"Model saved to {path}")
 
     def load_model(self, path: str) -> None:
         """
-        Load a trained model (stub implementation).
+        Load a trained model.
 
         Args:
             path: Path to load the model from.
         """
-        logger.warning("load_model called but not implemented (stub)")
+        if not SKLEARN_AVAILABLE:
+            logger.warning("sklearn not available, cannot load model")
+            self.is_trained = True
+            return
+            
+        import joblib
+        self.model = joblib.load(path)
         self.is_trained = True
+        logger.info(f"Model loaded from {path}")
 
 
 def create_features(
     signals_df: pd.DataFrame, lookback_periods: List[int] = [5, 10, 20, 60]
 ) -> pd.DataFrame:
     """
-    Create features for ML model from signals data (stub implementation).
+    Create comprehensive features for ML model from signals data.
 
     Args:
         signals_df: DataFrame with signals and market data.
@@ -130,48 +223,8 @@ def create_features(
     Returns:
         DataFrame with engineered features.
     """
-    logger.warning("create_features called but not fully implemented (stub)")
-
-    features = pd.DataFrame(index=signals_df.index)
-
-    # Basic features (stub implementation)
-    if "spread_z" in signals_df.columns:
-        features["spread_z"] = signals_df["spread_z"]
-
-        # Add lagged features
-        for period in lookback_periods:
-            features[f"spread_z_lag_{period}"] = signals_df["spread_z"].shift(period)
-
-    if "spread" in signals_df.columns:
-        features["spread"] = signals_df["spread"]
-
-        # Add rolling statistics
-        for period in lookback_periods:
-            features[f"spread_mean_{period}"] = (
-                signals_df["spread"].rolling(period).mean()
-            )
-            features[f"spread_std_{period}"] = (
-                signals_df["spread"].rolling(period).std()
-            )
-
-    # Add time-based features
-    features["day_of_week"] = signals_df.index.dayofweek
-    features["month"] = signals_df.index.month
-
-    # Add volatility features
-    if "fx_price" in signals_df.columns:
-        features["fx_returns"] = signals_df["fx_price"].pct_change()
-        features["fx_volatility"] = features["fx_returns"].rolling(20).std()
-
-    if "comd_price" in signals_df.columns:
-        features["comd_returns"] = signals_df["comd_price"].pct_change()
-        features["comd_volatility"] = features["comd_returns"].rolling(20).std()
-
-    # Drop rows with NaN values
-    features = features.dropna()
-
+    features = create_comprehensive_features(signals_df, lookback_periods)
     logger.info(f"Created {features.shape[1]} features for {len(features)} samples")
-
     return features
 
 
@@ -179,24 +232,24 @@ def apply_ml_filter(
     signals_df: pd.DataFrame,
     ml_filter: MLSignalFilter,
     probability_threshold: float = 0.5,
+    lookback_periods: List[int] = [5, 10, 20, 60]
 ) -> pd.DataFrame:
     """
-    Apply ML filter to trading signals (stub implementation).
+    Apply ML filter to trading signals.
 
     Args:
         signals_df: DataFrame with signals.
         ml_filter: Trained ML filter instance.
         probability_threshold: Threshold for accepting signals.
+        lookback_periods: Lookback periods for feature creation.
 
     Returns:
         DataFrame with ML-filtered signals.
     """
-    logger.warning("apply_ml_filter called but not fully implemented (stub)")
-
     result = signals_df.copy()
 
     # Create features
-    features = create_features(signals_df)
+    features = create_features(signals_df, lookback_periods)
 
     # Get predictions
     if ml_filter.is_trained:
@@ -229,39 +282,21 @@ def create_training_labels(
     signals_df: pd.DataFrame,
     forward_return_window: int = 5,
     return_threshold: float = 0.0,
+    label_type: str = "binary"
 ) -> pd.Series:
     """
-    Create training labels for ML model (stub implementation).
+    Create training labels for ML model.
 
     Args:
         signals_df: DataFrame with signals and returns.
         forward_return_window: Window for calculating forward returns.
         return_threshold: Threshold for positive/negative labels.
+        label_type: Type of labels to create ("binary", "multi", "regression").
 
     Returns:
         Series with training labels.
     """
-    logger.warning("create_training_labels called but not fully implemented (stub)")
-
-    # Calculate forward returns
-    if "spread" in signals_df.columns:
-        forward_returns = (
-            signals_df["spread"]
-            .pct_change(forward_return_window)
-            .shift(-forward_return_window)
-        )
-    else:
-        # Fallback to simple random labels
-        forward_returns = pd.Series(
-            np.random.randn(len(signals_df)), index=signals_df.index
-        )
-
-    # Create labels (1 for profitable, 0 for unprofitable)
-    labels = (forward_returns > return_threshold).astype(int)
-
-    # Drop NaN values
-    labels = labels.dropna()
-
-    logger.info(f"Created {len(labels)} training labels ({labels.mean():.2%} positive)")
-
+    labels = create_training_labels(
+        signals_df, forward_return_window, return_threshold, label_type
+    )
     return labels

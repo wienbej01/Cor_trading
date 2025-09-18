@@ -100,7 +100,7 @@ class ExecutionPolicy:
             Tuple of (fx_slippage, comd_slippage) in absolute terms.
         """
         if order_type is None:
-            order_type = self.config["default_order_type"]
+            order_type = self.config.default_order_type
 
         # Base slippage based on order type
         if order_type == "market":
@@ -185,7 +185,7 @@ class ExecutionPolicy:
             self.config.market_impact_coefficient * np.sqrt(position_size) * price
         )
         quadratic_impact = (
-            self.config.quadratic_impact_coefficient * (position_size**2) * price
+            getattr(self.config, 'quadratic_impact_coefficient', 0.001) * (position_size**2) * price
         )
 
         total_impact = linear_impact + quadratic_impact
@@ -328,7 +328,7 @@ def create_default_execution_config() -> ExecutionConfig:
     return ExecutionConfig()
 
 
-def create_execution_policy(config: Dict = None) -> ExecutionPolicy:
+def create_execution_policy(config: ExecutionConfig = None) -> ExecutionPolicy:
     """
     Create an execution policy with default or provided configuration.
 
@@ -339,8 +339,6 @@ def create_execution_policy(config: Dict = None) -> ExecutionPolicy:
         Execution policy instance.
     """
     if config is None:
-        config = {}
+        config = ExecutionConfig()
 
-    exec_config = ExecutionConfig(**config)
-
-    return ExecutionPolicy(exec_config)
+    return ExecutionPolicy(config)
