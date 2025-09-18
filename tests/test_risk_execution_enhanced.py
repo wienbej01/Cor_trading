@@ -28,7 +28,7 @@ from src.exec.policy import (
     create_default_execution_config,
     create_execution_policy,
 )
-from tests.test_utils import generate_synthetic_market_data, CustomAssertions
+from test_utils import generate_synthetic_market_data, CustomAssertions
 
 
 class TestRiskConfig:

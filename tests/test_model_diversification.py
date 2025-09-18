@@ -22,15 +22,15 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.neural_network import MLPRegressor
 
 from ml.ensemble import (
-    ModelEnsemble,
-    ModelWrapper,
-    OLSModelWrapper,
-    KalmanModelWrapper,
-    RollingCorrelationModelWrapper,
+    EnsembleModel,
+    BaseModel,
+    OLSModel,
+    KalmanModel,
+    RollingCorrelationModel,
 )
-from ml.diagnostics import ModelDiagnostics
-from backtest.parallel import ParallelBacktest
-from tests.test_utils import generate_synthetic_market_data, CustomAssertions
+from ml.diagnostics import MLDiagnostics
+from backtest.parallel import ParallelBacktester
+from test_utils import generate_synthetic_market_data, CustomAssertions
 
 
 class TestModelWrapper:
@@ -179,13 +179,13 @@ class TestOLSModelWrapper:
         assert len(predictions) == len(x_series)
 
 
-class TestKalmanModelWrapper:
-    """Test KalmanModelWrapper class."""
+class TestKalmanModel:
+    """Test KalmanModel class."""
 
     @pytest.fixture
     def kalman_model(self):
-        """Create a KalmanModelWrapper instance for testing."""
-        return KalmanModelWrapper(delta=1e-5, lam=0.995)
+        """Create a KalmanModel instance for testing."""
+        return KalmanModel(delta=1e-5, lam=0.995)
 
     @pytest.fixture
     def sample_data(self):
@@ -390,18 +390,18 @@ class TestRollingCorrelationModelWrapper:
         assert valid_short.std() > valid_long.std()
 
 
-class TestModelEnsemble:
-    """Test ModelEnsemble class."""
+class TestEnsembleModel:
+    """Test EnsembleModel class."""
 
     @pytest.fixture
     def ensemble(self):
-        """Create a ModelEnsemble instance for testing."""
+        """Create a EnsembleModel instance for testing."""
         models = {
-            "ols": OLSModelWrapper(),
-            "kalman": KalmanModelWrapper(),
-            "rolling": RollingCorrelationModelWrapper(window=60),
+            "ols": OLSModel(),
+            "kalman": KalmanModel(),
+            "rolling": RollingCorrelationModel(window=60),
         }
-        return ModelEnsemble(models, weights=None)
+        return EnsembleModel(models, weights=None)
 
     @pytest.fixture
     def sample_data(self):
@@ -541,13 +541,13 @@ class TestModelEnsemble:
         assert abs(sum(new_weights.values()) - 1.0) < 1e-10
 
 
-class TestModelDiagnostics:
-    """Test ModelDiagnostics class."""
+class TestMLDiagnostics:
+    """Test MLDiagnostics class."""
 
     @pytest.fixture
     def diagnostics(self):
-        """Create a ModelDiagnostics instance for testing."""
-        return ModelDiagnostics()
+        """Create a MLDiagnostics instance for testing."""
+        return MLDiagnostics()
 
     @pytest.fixture
     def sample_model(self):
@@ -698,13 +698,13 @@ class TestModelDiagnostics:
             assert metrics["mae"] >= 0
 
 
-class TestParallelBacktest:
-    """Test ParallelBacktest class."""
+class TestParallelBacktester:
+    """Test ParallelBacktester class."""
 
     @pytest.fixture
     def parallel_backtest(self):
-        """Create a ParallelBacktest instance for testing."""
-        return ParallelBacktest(n_workers=2)
+        """Create a ParallelBacktester instance for testing."""
+        return ParallelBacktester(n_workers=2)
 
     @pytest.fixture
     def sample_data(self):

@@ -463,7 +463,7 @@ class LSTMModel(BaseModel):
         return None
 
 
-class ModelEnsemble:
+class EnsembleModel:
     """Ensemble model that combines predictions from multiple models."""
 
     def __init__(self, config: ModelConfig = None):
@@ -582,7 +582,7 @@ class ModelEnsemble:
         return importances
 
 
-def create_ensemble_model(config: ModelConfig = None) -> ModelEnsemble:
+def create_ensemble_model(config: ModelConfig = None) -> EnsembleModel:
     """
     Create an ensemble model with default or provided configuration.
 

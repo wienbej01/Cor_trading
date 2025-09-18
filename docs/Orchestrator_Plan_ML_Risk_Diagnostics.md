@@ -31,7 +31,7 @@
 
 **Accept:** Branch is `ML-enhancement`; docs updated; repo clean.
 
-**P0.2 – Minimal CI/QA smoke**
+**P0.2 – Minimal CI/QA smoke** ✅ Completed
 **Mode:** engineering-platform → testing-analytics-hub
 **Files:** `pyproject.toml`, `requirements-dev.txt`, `scripts/qa/smoke.sh`, `.github/workflows/ci.yml`
 **Steps:**

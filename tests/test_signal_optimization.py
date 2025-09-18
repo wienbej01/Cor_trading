@@ -20,7 +20,7 @@ import warnings
 from src.features.signal_optimization import SignalOptimizer
 from src.features.indicators import zscore, zscore_robust, atr_proxy
 from src.features.spread import compute_spread
-from tests.test_utils import generate_synthetic_market_data, CustomAssertions
+from test_utils import generate_synthetic_market_data, CustomAssertions
 
 
 class TestSignalOptimizer:

@@ -18,12 +18,12 @@ import warnings
 from features.signal_optimization import SignalOptimizer
 from risk.manager import RiskManager, RiskConfig
 from exec.policy import ExecutionPolicy, ExecutionConfig
-from backtest.engine import BacktestEngine
-from backtest.rolling_metrics import RollingMetrics
-from backtest.distribution_analysis import DistributionAnalysis
-from ml.ensemble import ModelEnsemble, OLSModelWrapper, KalmanModelWrapper
+from backtest.engine import run_backtest
+from backtest.rolling_metrics import calculate_rolling_metrics
+from backtest.distribution_analysis import calculate_distribution_metrics
+from ml.ensemble import EnsembleModel, OLSModel, KalmanModel
 from interfaces.validation import ValidationInterface
-from tests.test_utils import (
+from test_utils import (
     generate_synthetic_market_data,
     generate_synthetic_equity_curve,
     CustomAssertions,
@@ -294,15 +294,8 @@ class TestEndToEndSignalToExecutionFlow:
         """Test complete backtest integration."""
         fx_series, commodity_series = sample_data
 
-        # Create backtest engine
-        backtest_engine = BacktestEngine(
-            strategy_config=strategy_config,
-            risk_config=risk_config,
-            execution_config=execution_config,
-        )
-
         # Run backtest
-        results = backtest_engine.run_backtest(fx_series, commodity_series)
+        results, _, _ = run_backtest(fx_series, commodity_series, strategy_config, risk_config, execution_config)
 
         # Check that results are generated
         assert isinstance(results, dict)
@@ -363,17 +356,10 @@ class TestEndToEndSignalToExecutionFlow:
         fx_series, commodity_series = sample_data
 
         # Run backtest
-        backtest_engine = BacktestEngine(
-            strategy_config=strategy_config,
-            risk_config=risk_config,
-            execution_config=execution_config,
-        )
-
-        results = backtest_engine.run_backtest(fx_series, commodity_series)
+        results, _, _ = run_backtest(fx_series, commodity_series, strategy_config, risk_config, execution_config)
 
         # Calculate rolling metrics
-        rolling_metrics = RollingMetrics()
-        rolling_df = rolling_metrics.calculate_rolling_metrics(
+        rolling_df = calculate_rolling_metrics(
             results["returns"], window=63
         )
 
@@ -392,8 +378,7 @@ class TestEndToEndSignalToExecutionFlow:
             assert metric in rolling_df.columns
 
         # Calculate distribution metrics
-        dist_analysis = DistributionAnalysis()
-        dist_metrics = dist_analysis.calculate_all_distribution_metrics(
+        dist_metrics = calculate_distribution_metrics(
             results["returns"].dropna()
         )
 
@@ -443,13 +428,7 @@ class TestEndToEndSignalToExecutionFlow:
         assert data_validation["is_valid"] is True
 
         # Run backtest with validated configurations
-        backtest_engine = BacktestEngine(
-            strategy_config=strategy_config,
-            risk_config=risk_config,
-            execution_config=execution_config,
-        )
-
-        results = backtest_engine.run_backtest(fx_series, commodity_series)
+        results, _, _ = run_backtest(fx_series, commodity_series, strategy_config, risk_config, execution_config)
 
         # Check that backtest runs successfully with validated configurations
         assert isinstance(results, dict)
@@ -471,8 +450,7 @@ class TestMultiModelEnsembleIntegration:
         """Test integration of ensemble models with the trading system."""
         fx_series, commodity_series = sample_data
 
-        # Create models
-        models = {"ols": OLSModelWrapper(), "kalman": KalmanModelWrapper()}
+        models = {"ols": OLSModel(), "kalman": KalmanModel()}
 
         # Create ensemble
         ensemble = ModelEnsemble(models)

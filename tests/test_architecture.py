@@ -23,7 +23,7 @@ from interfaces.validation import (
     ValidationInterface,
     ParameterValidator,
 )
-from .test_utils import generate_synthetic_market_data, CustomAssertions
+from test_utils import generate_synthetic_market_data, CustomAssertions
 
 
 # TODO: Implement concrete ParameterValidator, ValidationInterface classes

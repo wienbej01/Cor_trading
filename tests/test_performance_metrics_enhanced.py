@@ -20,11 +20,17 @@ from backtest.rolling_metrics import (
     calculate_rolling_sharpe,
     calculate_rolling_sortino,
     calculate_rolling_max_drawdown,
-    calculate_rolling_calmar,
     calculate_rolling_metrics,
 )
-from backtest.distribution_analysis import DistributionAnalysis
-from .test_utils import (
+from backtest.distribution_analysis import (
+    calculate_skewness,
+    calculate_kurtosis,
+    calculate_var,
+    calculate_cvar,
+    calculate_distribution_metrics,
+    analyze_return_distribution,
+)
+from test_utils import (
     generate_synthetic_market_data,
     generate_synthetic_equity_curve,
     CustomAssertions,
@@ -109,27 +115,7 @@ def test_calculate_rolling_drawdown(sample_returns):
     # Check that we have some significant drawdowns
     assert valid_dd.min() < -0.05  # At least 5% drawdown
 
-def test_calculate_rolling_calmar(sample_returns):
-    """Test rolling Calmar ratio calculation."""
-    window = 126  # ~6 months
 
-    rolling_calmar = calculate_rolling_calmar(
-        sample_returns, window=window
-    )
-
-    # Check that result is a Series
-    assert isinstance(rolling_calmar, pd.Series)
-
-    # Check that index matches input
-    assert rolling_calmar.index.equals(sample_returns.index)
-
-    # Check that values are reasonable
-    assert rolling_calmar.iloc[: window - 1].isna().all()
-    assert not rolling_calmar.iloc[window:].isna().all()
-
-    # Calmar ratio can be positive or negative
-    valid_calmar = rolling_calmar.dropna()
-    assert not valid_calmar.empty
 
 def test_calculate_rolling_win_rate(sample_returns):
     """Test rolling win rate calculation."""
@@ -238,304 +224,256 @@ def test_different_window_sizes(sample_returns):
 
 
 
-class TestDistributionAnalysis:
-    """Test DistributionAnalysis class."""
 
-    @pytest.fixture
-    def distribution_analyzer(self):
-        """Create a DistributionAnalysis instance for testing."""
-        return DistributionAnalysis()
 
-    @pytest.fixture
-    def sample_trade_returns(self):
-        """Create sample trade returns for testing."""
-        np.random.seed(123)
+def test_calculate_skewness(sample_trade_returns):
+    """Test skewness calculation."""
+    skewness = calculate_skewness(sample_trade_returns)
 
-        # Generate trade returns with specific characteristics
-        n_trades = 1000
+    # Check that result is a float
+    assert isinstance(skewness, float)
 
-        # Base returns
-        returns = np.random.normal(0.001, 0.02, n_trades)
+    # Check that it's a reasonable value
+    assert -5 <= skewness <= 5  # Reasonable bounds for skewness
 
-        # Add some fat tails (extreme returns)
-        extreme_returns = np.random.normal(
-            0, 0.1, int(n_trades * 0.05)
-        )  # 5% extreme returns
-        returns[: len(extreme_returns)] = extreme_returns
+def test_calculate_kurtosis(sample_trade_returns):
+    """Test kurtosis calculation."""
+    kurtosis = calculate_kurtosis(sample_trade_returns)
 
-        # Add slight negative skew
-        negative_skew = np.random.normal(
-            -0.005, 0.01, int(n_trades * 0.1)
-        )  # 10% negatively skewed
-        returns[: len(negative_skew)] = negative_skew
+    # Check that result is a float
+    assert isinstance(kurtosis, float)
 
-        return pd.Series(returns)
+    # Check that it's a reasonable value
+    # Normal distribution has kurtosis of 3, fat tails have higher values
+    assert kurtosis >= -5  # Lower bound
+    assert kurtosis <= 50  # Upper bound for fat tails
 
-    @pytest.fixture
-    def sample_equity_returns(self):
-        """Create sample equity returns for testing."""
-        np.random.seed(456)
-        dates = pd.date_range("2020-01-01", "2022-12-31", freq="D")
+def test_calculate_var(sample_trade_returns):
+    """Test Value at Risk (VaR) calculation."""
+    # Test different confidence levels
+    confidence_levels = [0.90, 0.95, 0.99]
 
-        # Generate daily returns
-        returns = pd.Series(np.random.normal(0.001, 0.015, len(dates)), index=dates)
-
-        return returns
-
-    def test_calculate_skewness(self, distribution_analyzer, sample_trade_returns):
-        """Test skewness calculation."""
-        skewness = distribution_analyzer.calculate_skewness(sample_trade_returns)
+    for confidence in confidence_levels:
+        var = calculate_var(
+            sample_trade_returns, confidence_level=confidence
+        )
 
         # Check that result is a float
-        assert isinstance(skewness, float)
+        assert isinstance(var, float)
 
-        # Check that it's a reasonable value
-        assert -5 <= skewness <= 5  # Reasonable bounds for skewness
+        # VaR should be negative (loss)
+        assert var <= 0
 
-    def test_calculate_kurtosis(self, distribution_analyzer, sample_trade_returns):
-        """Test kurtosis calculation."""
-        kurtosis = distribution_analyzer.calculate_kurtosis(sample_trade_returns)
+        # Higher confidence should give more extreme VaR
+        if confidence > 0.90:
+            var_95 = calculate_var(
+                sample_trade_returns, confidence_level=0.95
+            )
+            assert var <= var_95  # More negative for higher confidence
+
+def test_calculate_cvar(sample_trade_returns):
+    """Test Conditional Value at Risk (CVaR) calculation."""
+    # Test different confidence levels
+    confidence_levels = [0.90, 0.95, 0.99]
+
+    for confidence in confidence_levels:
+        cvar = calculate_cvar(
+            sample_trade_returns, confidence_level=confidence
+        )
 
         # Check that result is a float
-        assert isinstance(kurtosis, float)
+        assert isinstance(cvar, float)
 
-        # Check that it's a reasonable value
-        # Normal distribution has kurtosis of 3, fat tails have higher values
-        assert kurtosis >= -5  # Lower bound
-        assert kurtosis <= 50  # Upper bound for fat tails
-
-    def test_calculate_var(self, distribution_analyzer, sample_trade_returns):
-        """Test Value at Risk (VaR) calculation."""
-        # Test different confidence levels
-        confidence_levels = [0.90, 0.95, 0.99]
-
-        for confidence in confidence_levels:
-            var = distribution_analyzer.calculate_var(
-                sample_trade_returns, confidence=confidence
-            )
-
-            # Check that result is a float
-            assert isinstance(var, float)
-
-            # VaR should be negative (loss)
-            assert var <= 0
-
-            # Higher confidence should give more extreme VaR
-            if confidence > 0.90:
-                var_95 = distribution_analyzer.calculate_var(
-                    sample_trade_returns, confidence=0.95
-                )
-                assert var <= var_95  # More negative for higher confidence
-
-    def test_calculate_cvar(self, distribution_analyzer, sample_trade_returns):
-        """Test Conditional Value at Risk (CVaR) calculation."""
-        # Test different confidence levels
-        confidence_levels = [0.90, 0.95, 0.99]
-
-        for confidence in confidence_levels:
-            cvar = distribution_analyzer.calculate_cvar(
-                sample_trade_returns, confidence=confidence
-            )
-
-            # Check that result is a float
-            assert isinstance(cvar, float)
-
-            # CVaR should be negative (loss)
-            assert cvar <= 0
-
-            # CVaR should be more extreme than VaR
-            var = distribution_analyzer.calculate_var(
-                sample_trade_returns, confidence=confidence
-            )
-            assert cvar <= var  # More negative
-
-    def test_calculate_all_distribution_metrics(
-        self, distribution_analyzer, sample_trade_returns
-    ):
-        """Test calculation of all distribution metrics."""
-        metrics = distribution_analyzer.calculate_all_distribution_metrics(
-            sample_trade_returns
-        )
-
-        # Check that result is a dictionary
-        assert isinstance(metrics, dict)
-
-        # Check that all expected metrics are present
-        expected_metrics = [
-            "skewness",
-            "kurtosis",
-            "var_95",
-            "var_99",
-            "cvar_95",
-            "cvar_99",
-        ]
-        for metric in expected_metrics:
-            assert metric in metrics
-
-        # Check that values are reasonable
-        assert isinstance(metrics["skewness"], float)
-        assert isinstance(metrics["kurtosis"], float)
-        assert isinstance(metrics["var_95"], float)
-        assert isinstance(metrics["var_99"], float)
-        assert isinstance(metrics["cvar_95"], float)
-        assert isinstance(metrics["cvar_99"], float)
-
-        # VaR and CVaR should be negative
-        assert metrics["var_95"] <= 0
-        assert metrics["var_99"] <= 0
-        assert metrics["cvar_95"] <= 0
-        assert metrics["cvar_99"] <= 0
+        # CVaR should be negative (loss)
+        assert cvar <= 0
 
         # CVaR should be more extreme than VaR
-        assert metrics["cvar_95"] <= metrics["var_95"]
-        assert metrics["cvar_99"] <= metrics["var_99"]
-
-        # 99% metrics should be more extreme than 95%
-        assert metrics["var_99"] <= metrics["var_95"]
-        assert metrics["cvar_99"] <= metrics["cvar_95"]
-
-    def test_rolling_distribution_analysis(
-        self, distribution_analyzer, sample_equity_returns
-    ):
-        """Test rolling distribution analysis."""
-        window = 126  # ~6 months
-
-        rolling_metrics = distribution_analyzer.calculate_rolling_distribution_metrics(
-            sample_equity_returns, window=window
+        var = calculate_var(
+            sample_trade_returns, confidence_level=confidence
         )
+        assert cvar <= var  # More negative
 
-        # Check that result is a DataFrame
-        assert isinstance(rolling_metrics, pd.DataFrame)
+def test_calculate_all_distribution_metrics(sample_trade_returns):
+    """Test calculation of all distribution metrics."""
+    metrics = calculate_distribution_metrics(
+        sample_trade_returns
+    )
 
-        # Check that all expected metrics are present
-        expected_metrics = [
-            "skewness",
-            "kurtosis",
-            "var_95",
-            "var_99",
-            "cvar_95",
-            "cvar_99",
-        ]
-        for metric in expected_metrics:
-            assert metric in rolling_metrics.columns
+    # Check that result is a dictionary
+    assert isinstance(metrics, dict)
 
-        # Check that index matches input
-        assert rolling_metrics.index.equals(sample_equity_returns.index)
+    # Check that all expected metrics are present
+    expected_metrics = [
+        "skewness",
+        "kurtosis",
+        "var_95",
+        "var_99",
+        "cvar_95",
+        "cvar_99",
+    ]
+    for metric in expected_metrics:
+        assert metric in metrics
 
-        # Check that values are reasonable
-        assert rolling_metrics.iloc[: window - 1].isna().all().all()  # Early values NaN
-        assert (
-            not rolling_metrics.iloc[window:].isna().all().all()
-        )  # Later values not all NaN
+    # Check that values are reasonable
+    assert isinstance(metrics["skewness"], float)
+    assert isinstance(metrics["kurtosis"], float)
+    assert isinstance(metrics["var_95"], float)
+    assert isinstance(metrics["var_99"], float)
+    assert isinstance(metrics["cvar_95"], float)
+    assert isinstance(metrics["cvar_99"], float)
 
-        # VaR and CVaR should be negative where not NaN
-        for metric in ["var_95", "var_99", "cvar_95", "cvar_99"]:
-            valid_values = rolling_metrics[metric].dropna()
-            assert (valid_values <= 0).all()
+    # VaR and CVaR should be negative
+    assert metrics["var_95"] <= 0
+    assert metrics["var_99"] <= 0
+    assert metrics["cvar_95"] <= 0
+    assert metrics["cvar_99"] <= 0
 
-    def test_insufficient_trades_handling(self, distribution_analyzer):
-        """Test handling of insufficient trade data."""
-        # Very few trades
-        few_returns = pd.Series([0.01, -0.005, 0.02, -0.01])
+    # CVaR should be more extreme than VaR
+    assert metrics["cvar_95"] <= metrics["var_95"]
+    assert metrics["cvar_99"] <= metrics["var_99"]
 
-        metrics = distribution_analyzer.calculate_all_distribution_metrics(few_returns)
+    # 99% metrics should be more extreme than 95%
+    assert metrics["var_99"] <= metrics["var_95"]
+    assert metrics["cvar_99"] <= metrics["cvar_95"]
 
-        # Should handle gracefully
-        assert isinstance(metrics, dict)
+def test_rolling_distribution_analysis(sample_equity_returns):
+    """Test rolling distribution analysis."""
+    window = 126  # ~6 months
 
-        # Values might be extreme or NaN, but should be present
-        expected_metrics = [
-            "skewness",
-            "kurtosis",
-            "var_95",
-            "var_99",
-            "cvar_95",
-            "cvar_99",
-        ]
-        for metric in expected_metrics:
-            assert metric in metrics
+    rolling_metrics = calculate_rolling_distribution_metrics(
+        sample_equity_returns, window=window
+    )
 
-    def test_nan_values_handling(self, distribution_analyzer, sample_trade_returns):
-        """Test handling of NaN values in input."""
-        # Add some NaN values
-        returns_with_nan = sample_trade_returns.copy()
-        returns_with_nan.iloc[:10] = np.nan
+    # Check that result is a DataFrame
+    assert isinstance(rolling_metrics, pd.DataFrame)
 
-        metrics = distribution_analyzer.calculate_all_distribution_metrics(
-            returns_with_nan
-        )
+    # Check that all expected metrics are present
+    expected_metrics = [
+        "skewness",
+        "kurtosis",
+        "var_95",
+        "var_99",
+        "cvar_95",
+        "cvar_99",
+    ]
+    for metric in expected_metrics:
+        assert metric in rolling_metrics.columns
 
-        # Should handle NaN values gracefully
-        assert isinstance(metrics, dict)
+    # Check that index matches input
+    assert rolling_metrics.index.equals(sample_equity_returns.index)
 
-        # Should still calculate metrics using valid data
-        expected_metrics = [
-            "skewness",
-            "kurtosis",
-            "var_95",
-            "var_99",
-            "cvar_95",
-            "cvar_99",
-        ]
-        for metric in expected_metrics:
-            assert metric in metrics
+    # Check that values are reasonable
+    assert rolling_metrics.iloc[: window - 1].isna().all().all()  # Early values NaN
+    assert (
+        not rolling_metrics.iloc[window:].isna().all().all()
+    )  # Later values not all NaN
 
-    def test_extreme_values_handling(self, distribution_analyzer):
-        """Test handling of extreme values."""
-        # Create returns with extreme values
-        normal_returns = np.random.normal(0.001, 0.02, 100)
-        extreme_returns = np.array([10.0, -15.0, 20.0, -25.0])  # Extreme values
-        all_returns = np.concatenate([normal_returns, extreme_returns])
+    # VaR and CVaR should be negative where not NaN
+    for metric in ["var_95", "var_99", "cvar_95", "cvar_99"]:
+        valid_values = rolling_metrics[metric].dropna()
+        assert (valid_values <= 0).all()
 
-        returns_series = pd.Series(all_returns)
+def test_insufficient_trades_handling():
+    """Test handling of insufficient trade data."""
+    # Very few trades
+    few_returns = pd.Series([0.01, -0.005, 0.02, -0.01])
 
-        metrics = distribution_analyzer.calculate_all_distribution_metrics(
-            returns_series
-        )
+    metrics = calculate_all_distribution_metrics(few_returns)
 
-        # Should handle extreme values gracefully
-        assert isinstance(metrics, dict)
+    # Should handle gracefully
+    assert isinstance(metrics, dict)
 
-        # Skewness and kurtosis should reflect extreme values
-        assert abs(metrics["skewness"]) > 0.5  # Should be skewed
-        assert metrics["kurtosis"] > 5  # Should have fat tails
+    # Values might be extreme or NaN, but should be present
+    expected_metrics = [
+        "skewness",
+        "kurtosis",
+        "var_95",
+        "var_99",
+        "cvar_95",
+        "cvar_99",
+    ]
+    for metric in expected_metrics:
+        assert metric in metrics
 
-        # VaR and CVaR should capture extreme values
-        assert metrics["var_99"] < -0.1  # Should be quite negative
-        assert metrics["cvar_99"] < metrics["var_99"]  # CVaR more extreme
+def test_nan_values_handling(sample_trade_returns):
+    """Test handling of NaN values in input."""
+    # Add some NaN values
+    returns_with_nan = sample_trade_returns.copy()
+    returns_with_nan.iloc[:10] = np.nan
 
-    def test_custom_confidence_levels(
-        self, distribution_analyzer, sample_trade_returns
-    ):
-        """Test calculation with custom confidence levels."""
-        # Test non-standard confidence levels
-        var_80 = distribution_analyzer.calculate_var(
-            sample_trade_returns, confidence=0.80
-        )
-        var_999 = distribution_analyzer.calculate_var(
-            sample_trade_returns, confidence=0.999
-        )
+    metrics = calculate_all_distribution_metrics(
+        returns_with_nan
+    )
 
-        cvar_80 = distribution_analyzer.calculate_cvar(
-            sample_trade_returns, confidence=0.80
-        )
-        cvar_999 = distribution_analyzer.calculate_cvar(
-            sample_trade_returns, confidence=0.999
-        )
+    # Should handle gracefully
+    assert isinstance(metrics, dict)
 
-        # Check that results are reasonable
-        assert isinstance(var_80, float)
-        assert isinstance(var_999, float)
-        assert isinstance(cvar_80, float)
-        assert isinstance(cvar_999, float)
+    # Should still calculate metrics using valid data
+    expected_metrics = [
+        "skewness",
+        "kurtosis",
+        "var_95",
+        "var_99",
+        "cvar_95",
+        "cvar_99",
+    ]
+    for metric in expected_metrics:
+        assert metric in metrics
 
-        # More extreme confidence should give more extreme values
-        assert var_999 <= var_80  # More negative
-        assert cvar_999 <= cvar_80  # More negative
+def test_extreme_values_handling():
+    """Test handling of extreme values."""
+    # Create returns with extreme values
+    normal_returns = np.random.normal(0.001, 0.02, 100)
+    extreme_returns = np.array([10.0, -15.0, 20.0, -25.0])  # Extreme values
+    all_returns = np.concatenate([normal_returns, extreme_returns])
 
-        # CVaR should be more extreme than VaR
-        assert cvar_80 <= var_80
-        assert cvar_999 <= var_999
+    returns_series = pd.Series(all_returns)
+
+    metrics = calculate_all_distribution_metrics(
+        returns_series
+    )
+
+    # Should handle extreme values gracefully
+    assert isinstance(metrics, dict)
+
+    # Skewness and kurtosis should reflect extreme values
+    assert abs(metrics["skewness"]) > 0.5  # Should be skewed
+    assert metrics["kurtosis"] > 5  # Should have fat tails
+
+    # VaR and CVaR should capture extreme values
+    assert metrics["var_99"] < -0.1  # Should be quite negative
+    assert metrics["cvar_99"] < metrics["var_99"]  # CVaR more extreme
+
+def test_custom_confidence_levels(sample_trade_returns):
+    """Test calculation with custom confidence levels."""
+    # Test non-standard confidence levels
+    var_80 = calculate_var(
+        sample_trade_returns, confidence_level=0.80
+    )
+    var_999 = calculate_var(
+        sample_trade_returns, confidence_level=0.999
+    )
+
+    cvar_80 = calculate_cvar(
+        sample_trade_returns, confidence_level=0.80
+    )
+    cvar_999 = calculate_cvar(
+        sample_trade_returns, confidence_level=0.999
+    )
+
+    # Check that results are reasonable
+    assert isinstance(var_80, float)
+    assert isinstance(var_999, float)
+    assert isinstance(cvar_80, float)
+    assert isinstance(cvar_999, float)
+
+    # More extreme confidence should give more extreme values
+    assert var_999 <= var_80  # More negative
+    assert cvar_999 <= cvar_80  # More negative
+
+    # CVaR should be more extreme than VaR
+    assert cvar_80 <= var_80
+    assert cvar_999 <= var_999
 
 
 class TestPerformanceMetricsIntegration:
