@@ -57,10 +57,16 @@ from utils.logging import setup_logging, trading_logger
 @click.option(
     "--no-kalman",
     is_flag=True,
-    help="Use OLS instead of Kalman filter for spread calculation",
+    help="Probability threshold for the ML filter to override config.",
+)
+@click.option(
+    "--risk-config",
+    type=str,
+    default=None,
+    help="Path to a risk config file to override the default.",
 )
 def run_backtest_cli(
-    pair, start, end, log_level, output_dir, save_data, report_format, no_kalman
+    pair, start, end, log_level, output_dir, save_data, report_format, no_kalman, use_ml_filter, ml_model_path, ml_threshold
 ):
     """
     Run backtest for FX-Commodity correlation arbitrage strategy.
@@ -247,6 +253,27 @@ def show_config(pair):
         def print_dict(d, indent=0):
             for key, value in d.items():
                 if isinstance(value, dict):
+                    print("  " * indent + f"{key}:")
+                    print_dict(value, indent + 1)
+                else:
+                    print("  " * indent + f"{key}: {value}")
+
+        print_dict(pair_config)
+        print("\n" + "=" * 50 + "\n")
+
+    except KeyError:
+        print(
+            f"Error: Pair '{pair}' not found. Use 'list-pairs' to see available pairs."
+        )
+
+
+# Add the main backtest command to the CLI group
+cli.add_command(run_backtest_cli, name="run")
+
+
+if __name__ == "__main__":
+    cli()
+instance(value, dict):
                     print("  " * indent + f"{key}:")
                     print_dict(value, indent + 1)
                 else:

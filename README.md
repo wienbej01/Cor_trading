@@ -142,7 +142,14 @@ src/
   features/spread.py          # Spread calculation (OLS/Kalman)
   features/regime.py          # Regime detection
   strategy/mean_reversion.py  # Signal generation and position sizing
-  ml/filter.py                # ML signal filter (stub)
+  strategy/ml_filter.py       # ML trade filter
+  ml/schema.py                # Schema for ML features and labels
+  ml/dataset.py               # Script to build ML datasets
+  ml/models.py                # ML model definitions
+  ml/train.py                 # Script to train ML models
+  risk/policy.py              # Risk management policies
+  risk/sizing.py              # Position sizing logic
+  risk/exits.py               # Risk-based exit logic
   backtest/engine.py          # Backtesting engine
   exec/broker_stub.py         # Broker adapters (stubs)
   configs/pairs.yaml          # Pair configurations
@@ -297,6 +304,11 @@ How to fetch latest pair reports
 Known issues and next steps
 - Backtest PnL zeroing bug: Investigate position propagation after time-stop and ensure costs/positions are aggregated correctly across trades. Areas to inspect:
   - [mean_reversion.apply_time_stop()](src/strategy/mean_reversion.py:333)
+  - [backtest.engine._calculate_trade_stats()](src/backtest/engine.py:251)
+  - [backtest.engine.calculate_performance_metrics()](src/backtest/engine.py:333)
+- Regime thresholds: Continue calibrated softening and ablations (corr_window, min_abs_corr, HMM window/df/tol) to balance trade frequency and quality.
+- Documentation: This section supersedes older summaries; all new reports are under backtest_results/.
+on.py:333)
   - [backtest.engine._calculate_trade_stats()](src/backtest/engine.py:251)
   - [backtest.engine.calculate_performance_metrics()](src/backtest/engine.py:333)
 - Regime thresholds: Continue calibrated softening and ablations (corr_window, min_abs_corr, HMM window/df/tol) to balance trade frequency and quality.

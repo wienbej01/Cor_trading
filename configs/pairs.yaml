@@ -99,20 +99,16 @@ usdcad_wti:
       large_thresh: 0.05  # Equity fraction for large trades
       small_bps: 0.5      # Basis points for small trades
       large_bps: 2.0      # Basis points for large trades
-      impact_coeff: 0.5   # Quadratic impact coefficient
-  
-  # Risk management
-  risk:
-    max_position_size: 0.10  # Maximum 10% of equity per pair
-    max_daily_loss: 0.02     # Maximum 2% daily loss per pair
-    max_weekly_loss: 0.05    # Maximum 5% weekly loss per pair
-    daily_drawdown_limit: 0.02  # Maximum 2% daily drawdown per pair
-    max_trade_risk: 0.01     # Maximum 1% of portfolio per trade
-    enable_circuit_breaker: true  # Enable circuit breaker for this pair
-  
-  # Advanced options
-  use_kalman: true       # Use Kalman filter for dynamic beta
-  
+        # Advanced options
+        use_kalman: true       # Use Kalman filter for dynamic beta
+      
+        # ML Filter configuration
+        ml_filter:
+          enabled: true
+          model_path: "artifacts/models/usdcad_wti/placeholder_model.joblib" # This path will be updated after training
+          threshold: 0.65
+          strict: true # If true, block trades. If false, just log.
+        
   # Model diversification options
   model_diversification:
     enable_ensemble: true           # Enable ensemble model

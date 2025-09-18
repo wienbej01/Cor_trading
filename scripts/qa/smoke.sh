@@ -8,12 +8,17 @@ echo "Commit: $(git rev-parse --short HEAD)"
 
 # 1. Environment check
 echo "1. Checking Python environment..."
+if [ ! -d ".venv" ]; then
+    python -m venv .venv
+fi
+source .venv/bin/activate
+pip install -r requirements.txt
 python --version
 pip list | grep -E "(pandas|numpy|scikit-learn|pytest)"
 
 # 2. Run quick unit test
 echo "2. Running architecture test..."
-cd /home/jacobw/Cor_trading
+cd /home/jacobwienberg/Cor_trading
 PYTHONPATH=. pytest tests/test_architecture.py -v --tb=short || { echo "Architecture test failed"; exit 1; }
 
 # 3. Run short backtest (1 month, single pair, includes costs/slippage via config)

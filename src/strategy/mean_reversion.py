@@ -135,6 +135,10 @@ def generate_signals(
     z = zscore_robust(spread, z_window).rename("z")
     result["spread_z"] = z
 
+    # Calculate ATR for risk management
+    result["fx_atr"] = atr_proxy(fx_series, atr_window)
+    result["comd_atr"] = atr_proxy(comd_series, atr_window)
+
     # Regime gating (corr + cointegration diagnostics)
     regime_ok = correlation_gate(fx_series, comd_series, corr_window, min_abs_corr)
 
@@ -472,6 +476,14 @@ def generate_signals_with_regime_filter(
     # Calculate regime filter
     regime_filter = combined_regime_filter(fx_series, comd_series, config)
 
+    # Instantiate the ML Trade Filter
+    ml_filter_config = config.get('ml_filter', {})
+    trade_filter = TradeFilter(
+        model_path=ml_filter_config.get('model_path', ''),
+        threshold=ml_filter_config.get('threshold', 0.5),
+        enabled=ml_filter_config.get('enabled', False)
+    )
+
     # Generate signals with regime filter
     signals_df = generate_signals(fx_series, comd_series, config, regime_filter)
 
@@ -807,6 +819,10 @@ def _prepare_d1_features_for_model(
     features["spread_z"] = z
 
     # Drop rows with NaN values
+    features = features.dropna()
+
+    return features
+ Drop rows with NaN values
     features = features.dropna()
 
     return features

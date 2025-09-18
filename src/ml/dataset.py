@@ -463,7 +463,3 @@ def main():
     # Save
     output_dir = os.path.join(args.output, args.pair)
     builder.save_dataset(features, labels, output_dir)
-
-
-if __name__ == '__main__':
-    main()

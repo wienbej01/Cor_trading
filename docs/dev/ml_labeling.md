@@ -1,160 +1,58 @@
-# ML Labeling Specification for Trade Filter
+# ML Labeling Strategy
 
-## Overview
+**Version:** 1.0
+**Date:** 2025-09-18
+**Author:** Gemini
 
-This document specifies the supervised learning setup for predicting spread reversion quality in FX-commodity correlation arbitrage. The ML filter learns to gate trades that are likely to revert to the mean within acceptable risk parameters.
+## 1. Objective
 
-## Label Definition
+The goal of the ML filter is to improve the precision of the mean-reversion strategy by learning to identify which trading opportunities are most likely to result in a profitable reversion. We formulate this as a binary classification problem: given a set of features at the time of a z-score entry signal, predict whether the trade will be "good" or "bad".
 
-### Primary Label: Reversion Success
-**Definition**: Binary classification where label = 1 if the spread reverts to within 0.5 standard deviations of its historical mean within 20 trading bars (approximately 1 month), subject to risk constraints.
+## 2. Label Definition
 
-**Formal Specification**:
-```
-label = 1 if:
-  - Spread reverts to [mean - 0.5σ, mean + 0.5σ] within 20 bars
-  - Risk-reward ratio ≥ 1.5
-  - Maximum adverse excursion ≤ 2.0 standard deviations
-  - No violation of temporal integrity (no lookahead)
-```
+A trade opportunity is labeled as **`1` (good)** if it meets all of the following criteria:
 
-**Label Timing**:
-- Features computed at bar close (t=0)
-- Label determined by future spread behavior (t=1 to t=20)
-- Signals evaluated at bar_close + 1 bar (no same-bar fills)
+1.  **Reversion:** The spread value crosses its moving average (the "mean") within a forward-looking horizon of `H` bars.
+2.  **Risk-Reward Ratio:** The trade achieves a pre-defined risk-reward ratio (`RR`) of at least `X` before hitting its stop-loss. The target profit is defined by the initial z-score and spread volatility, while the stop-loss is based on a multiple of the Average True Range (ATR) or a fixed percentage.
+3.  **Limited Drawdown:** The maximum adverse excursion (MAE) during the trade's lifetime (before exit) does not exceed `Y` times the initial stop-loss distance. This penalizes trades that experience extreme volatility, even if they eventually become profitable.
 
-### Risk-Reward Calculation
-```
-RR = |take_profit - entry_price| / |stop_loss - entry_price|
-```
-Where take_profit and stop_loss are set based on spread volatility and strategy parameters.
+A trade is labeled as **`0` (bad)** if any of the above conditions are not met within the `H` bar horizon.
 
-### Adverse Excursion
-Maximum deviation from entry price during the evaluation window, measured in standard deviations of the spread.
+### Parameters
 
-## Leakage Prevention
+*   **`H` (Horizon):** The number of forward-looking bars to check for a successful reversion. This should be aligned with the strategy's expected holding period. (e.g., 20 bars for H1 timeframe).
+*   **`X` (Risk-Reward Ratio):** The minimum acceptable profit-to-risk ratio. (e.g., 1.5).
+*   **`Y` (Max Adverse Excursion Multiplier):** A factor to control for excessive interim drawdown. (e.g., 2.0).
 
-### Embargo Period
-- **5 bars**: No samples created within 5 bars after a label is assigned
-- Prevents overlap between training samples and ensures temporal separation
+## 3. Feature Specification
 
-### Purge Window
-- **252 bars (1 year)**: Remove overlapping samples within 1-year windows
-- Ensures each market regime period contributes independently to training
+Features are chosen for their economic rationale and interpretability. We aim for parsimony to reduce the risk of overfitting. All features are calculated *at the time of the entry signal* and contain no forward-looking information.
 
-### Feature Engineering Constraints
-- All features computed using only historical data up to t=0
-- No future information leakage
-- Rolling statistics use expanding windows or fixed lookbacks
-- Regime classifications based on pre-entry conditions only
+### Core Features
+*   `z_score`: The entry z-score itself.
+*   `spread_rolling_std_20`: 20-period rolling standard deviation of the spread.
+*   `spread_roc_10`: 10-period Rate of Change of the spread.
 
-## Feature Specification
+### Regime Features
+*   `fx_vol_regime`: Volatility regime of the FX component (e.g., low, medium, high).
+*   `commodity_vol_regime`: Volatility regime of the commodity component.
+*   `fx_trend_regime`: Trend regime of the FX component (e.g., up, down, sideways).
+*   `commodity_trend_regime`: Trend regime of the commodity component.
 
-### Parsimony Principle
-Features selected for economic interpretability and minimal redundancy. Total: 18 features across 5 categories.
+## 4. Preventing Data Leakage
 
-### Spread Features (4)
-| Feature | Description | Rationale |
-|---------|-------------|-----------|
-| spread_z_20 | Z-score over 20 bars | Current deviation from short-term mean |
-| spread_z_60 | Z-score over 60 bars | Longer-term deviation context |
-| spread_momentum_5 | 5-bar momentum | Recent directional bias |
-| spread_momentum_20 | 20-bar momentum | Medium-term trend strength |
+Data leakage is a critical risk. We employ the following standard MLaaS (Machine Learning as a Service) techniques:
 
-### Volatility Features (4)
-| Feature | Description | Rationale |
-|---------|-------------|-----------|
-| spread_vol_20 | Spread volatility (20 bars) | Current spread instability |
-| spread_vol_60 | Spread volatility (60 bars) | Trend in volatility |
-| fx_vol_20 | FX pair volatility | Base currency risk |
-| comd_vol_20 | Commodity volatility | Quote currency risk |
+1.  **Purging:** When creating labels for a sample at time `t`, we must ensure that the data used to determine the outcome (i.e., data from `t+1` to `t+H`) is not used as features for *any other sample* between `t` and `t+H`. We will purge any training samples that fall within the labeling horizon of a previously labeled sample.
+2.  **Embargoing:** To prevent serial correlation effects, we apply an "embargo" period after the end of the labeling horizon. A certain number of samples (`k` bars) following `t+H` are dropped from the training set. This helps ensure that the training samples are more independent.
+3.  **Time-Series Cross-Validation:** Standard k-fold cross-validation is inappropriate for time-series data. We will use a walk-forward, expanding window cross-validation scheme. The training set will always precede the validation set in time.
 
-### Correlation Features (3)
-| Feature | Description | Rationale |
-|---------|-------------|-----------|
-| rolling_corr_20 | Rolling correlation (20 bars) | Current pair relationship |
-| rolling_corr_60 | Rolling correlation (60 bars) | Correlation trend |
-| corr_z_score | Correlation deviation | Unusual correlation levels |
+## 5. Class Balance
 
-### Regime Features (3)
-| Feature | Description | Rationale |
-|---------|-------------|-----------|
-| trend_regime | -1/0/1 (down/range/up) | Market trend state |
-| vol_regime | 0/1/2 (low/normal/high) | Volatility environment |
-| combined_regime | Combined trend+vol | Overall market regime |
+Mean-reversion opportunities that meet our strict labeling criteria are often rare, leading to a significant class imbalance (many more "bad" trades than "good" ones).
 
-### Temporal Features (4)
-| Feature | Description | Rationale |
-|---------|-------------|-----------|
-| day_of_week | 0-6 (Mon-Sun) | Weekly seasonality |
-| month_of_year | 1-12 | Annual seasonality |
-| quarter | 1-4 | Quarterly patterns |
-| holiday_proximity | Days to/from holiday | Event-driven volatility |
+The `src/ml/dataset.py` builder will have options to handle this, such as:
+*   **Undersampling:** Randomly remove samples from the majority class.
+*   **Oversampling (e.g., SMOTE):** Synthetically generate new samples for the minority class.
 
-## Class Balance Strategy
-
-### Target Distribution
-- Positive class (successful reversions): 30-40%
-- Negative class (failed reversions): 60-70%
-
-### Balancing Techniques
-1. **Undersampling negatives**: Random undersampling of failed trades
-2. **Oversampling positives**: SMOTE or similar for rare successful cases
-3. **Cost-sensitive learning**: Higher penalty for false negatives (missed opportunities)
-
-### Rationale
-- Mean reversion opportunities are rarer than failures
-- False negatives (rejecting good trades) more costly than false positives
-- Maintains economic realism while ensuring model learns from both outcomes
-
-## Economic Rationale
-
-### Why These Features?
-- **Spread metrics**: Direct measure of deviation driving reversion
-- **Volatility**: Risk context affects reversion probability and speed
-- **Correlation**: Pair relationship strength influences mean reversion
-- **Regime**: Market state determines strategy appropriateness
-- **Temporal**: Seasonal patterns in FX/commodity markets
-
-### Risk Management Integration
-- Labels incorporate risk-reward and adverse excursion limits
-- Features include volatility for position sizing context
-- Regime awareness prevents inappropriate market conditions
-
-## Validation Checks
-
-### Feature Integrity
-- No NaN values in feature sets
-- Stationarity tests for time series features
-- Correlation analysis to detect redundancy (< 0.95 threshold)
-
-### Label Quality
-- Temporal separation verification
-- No overlap between train/validation splits
-- Class balance within acceptable ranges
-
-### Leakage Tests
-- Feature importance analysis for suspicious patterns
-- Cross-validation stability checks
-- Out-of-sample performance monitoring
-
-## Implementation Notes
-
-### Data Pipeline
-1. Generate candidate trade signals from strategy
-2. Compute features at signal timestamp
-3. Simulate trade outcome over 20-bar horizon
-4. Assign label based on success criteria
-5. Apply embargo and purge filters
-6. Balance classes for training
-
-### Monitoring
-- Track feature distributions over time
-- Monitor label stability across market regimes
-- Validate no information leakage in production
-
-## Version History
-
-- v1.0: Initial specification (2025-09-18)
-- Economic rationale: Mean reversion probability increases with deviation magnitude but decreases with volatility and weak correlation
-- Risk focus: Adverse excursion control prevents catastrophic losses during evaluation period
+The choice of technique will be evaluated during model training. For the baseline, we will likely start with undersampling to create a balanced dataset.

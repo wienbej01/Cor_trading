@@ -1,0 +1,46 @@
+# Global Risk Management Configuration
+
+# Portfolio-level limits
+portfolio:
+  max_net_exposure: 1.5  # Max net exposure across all pairs (e.g., 1.5 = 150%)
+  max_gross_exposure: 2.5 # Max gross exposure across all pairs (e.g., 2.5 = 250%)
+
+# Default per-pair risk policies
+default_pair_policy:
+  # Trade-level risk
+  max_risk_per_trade: 0.01 # Max 1% of portfolio equity risked per trade
+  atr_stop_loss_multiplier: 1.5 # Default stop loss distance in ATRs
+  
+  # Cooldowns (in bars)
+  trade_cooldown: 4 # Wait 4 bars after a trade before entering a new one
+  
+  # Drawdown-based halts
+  daily_loss_stop:
+    enabled: true
+    threshold: 0.02 # Halt trading for the pair for the rest of the day if equity drops by 2%
+  
+  max_drawdown_stop:
+    enabled: true
+    threshold: 0.15 # Halt trading for the pair if drawdown reaches 15% from peak
+    lookback: 252 # Lookback window for calculating max drawdown
+
+# Default slippage model
+slippage:
+  model: 'volume_based' # or 'fixed_bps'
+  fixed_bps: 1.5 # Basis points for fixed model
+  volume_factor: 0.1 # Factor for volume-based model
+
+# Default position sizing configuration
+sizing:
+  method: 'inverse_volatility' # 'fixed_fractional', 'kelly_criterion'
+  target_volatility: 0.01 # Target 1% volatility contribution per trade
+  max_position_size: 0.10 # Max 10% of portfolio equity in a single position
+  min_position_size: 0.005 # Min 0.5% of portfolio equity
+  kelly_fraction: 0.5 # Fraction of Kelly criterion to use if method is 'kelly_criterion'
+
+# Per-pair overrides can be defined in pairs.yaml under the 'risk' key
+# Example in pairs.yaml for usdcad_wti:
+# risk:
+#   max_risk_per_trade: 0.015
+#   daily_loss_stop:
+#     threshold: 0.025

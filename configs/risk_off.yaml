@@ -1,0 +1,12 @@
+# Risk-OFF Configuration: All risk features are disabled.
+
+default_pair_policy:
+  trade_cooldown: 0
+  daily_loss_stop:
+    enabled: false
+  max_drawdown_stop:
+    enabled: false
+
+sizing:
+  method: 'fixed_fractional'
+  fixed_fraction: 0.10 # Simple 10% sizing

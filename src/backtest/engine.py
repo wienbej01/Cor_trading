@@ -58,114 +58,103 @@ def _safe_sharpe(p: pd.Series, ann_factor=252) -> float:
 
 def backtest_pair(
     df: pd.DataFrame,
-    entry_z: float,
-    exit_z: float,
-    stop_z: float,
-    max_bars: int,
-    inverse_fx_for_quote_ccy_strength: bool,
+    config: dict,
 ) -> pd.DataFrame:
     """
-    Backtest a single FX-Commodity pair with one-bar execution delay.
+    Backtest a single FX-Commodity pair with a bar-by-bar event loop to support
+    complex risk management and position sizing.
 
     Args:
         df: DataFrame with signals and market data.
-        entry_z: Z-score threshold for entry.
-        exit_z: Z-score threshold for exit.
-        stop_z: Z-score threshold for stop loss.
-        max_bars: Maximum number of bars to hold a position.
-        inverse_fx_for_quote_ccy_strength: Whether to inverse FX for quote currency strength.
+        config: The configuration dictionary for the pair.
 
     Returns:
-        DataFrame with backtest results and performance metrics.
-
-    Raises:
-        ValueError: If required columns are missing or parameters are invalid.
+        DataFrame with backtest results.
     """
-    logger.info("Running backtest with one-bar execution delay")
+    logger.info("Running bar-by-bar backtest with integrated risk management.")
 
-    # Validate input
-    required_columns = [
-        "fx_price",
-        "comd_price",
-        "signal",
-        "fx_position",
-        "comd_position",
-        "spread_z",
-    ]
-    for col in required_columns:
-        if col not in df.columns:
-            raise ValueError(f"Missing required column: {col}")
+    # --- Initialization ---
+    initial_equity = 100_000.0
+    equity = initial_equity
+    position = 0
+    entry_price_spread = 0.0
+    
+    # Result lists
+    equity_curve = []
+    pnl_curve = []
+    position_curve = []
+    drawdown_curve = []
+    running_max_equity = initial_equity
 
-    if stop_z <= entry_z:
-        raise ValueError("Stop Z must be greater than entry Z")
+    # Risk and Sizing
+    risk_config = config.get('risk', {})
+    sizing_config = config.get('sizing', {})
+    risk_policy = RiskPolicy(risk_config)
+    position_sizer = PositionSizer(sizing_config)
 
-    if entry_z <= exit_z:
-        raise ValueError("Entry Z must be greater than exit Z")
+    # --- Event Loop ---
+    for i in range(1, len(df)):
+        current_time = df.index[i]
+        prev_time = df.index[i-1]
+        row = df.iloc[i]
+        prev_row = df.iloc[i-1]
 
-    # Create result DataFrame
+        # Update equity with PnL from the previous bar
+        pnl = 0
+        if position != 0:
+            fx_pnl = position * (row['fx_price'] - prev_row['fx_price'])
+            comd_pnl = -position * (row['comd_price'] - prev_row['comd_price'])
+            pnl = fx_pnl + comd_pnl
+        equity += pnl
+        
+        # Update drawdown
+        running_max_equity = max(running_max_equity, equity)
+        drawdown = (equity - running_max_equity) / running_max_equity if running_max_equity > 0 else 0
+
+        # --- Exit Logic ---
+        exit_signal = False
+        if position == 1 and (row['spread_z'] >= -config['thresholds']['exit_z']):
+            exit_signal = True
+        elif position == -1 and (row['spread_z'] <= config['thresholds']['exit_z']):
+            exit_signal = True
+        
+        # ATR Stop Loss
+        if position != 0 and check_atr_stop_loss(position, entry_price_spread, row['spread'], row['fx_atr'], risk_config.get('atr_stop_loss_multiplier', 2.0)):
+            exit_signal = True
+            logger.debug(f"ATR Stop triggered at {current_time}")
+
+        if exit_signal and position != 0:
+            position = 0
+            entry_price_spread = 0.0
+
+        # --- Entry Logic ---
+        entry_signal = row['signal']
+        if entry_signal != 0 and position == 0:
+            equity_history = pd.Series(equity_curve, index=df.index[:len(equity_curve)])
+            if risk_policy.can_trade(current_time, equity, equity_history):
+                # Use position sizer here if needed, for now we use the pre-calculated size
+                position = entry_signal
+                entry_price_spread = row['spread']
+                risk_policy.record_trade(current_time)
+
+        # Append results for this bar
+        equity_curve.append(equity)
+        pnl_curve.append(pnl)
+        position_curve.append(position)
+        drawdown_curve.append(drawdown)
+
+    # --- Post-processing ---
     result = df.copy()
-
-    # Use pre-computed strategy signal (stateful, already filtered/gated)
-    result["raw_signal"] = df["signal"].astype(float).fillna(0.0)
-
-    # Apply one-bar execution delay
-    result["delayed_signal"] = result["raw_signal"].shift(1)
-    result["delayed_fx_position"] = result["fx_position"].shift(1)
-    result["delayed_comd_position"] = result["comd_position"].shift(1)
-
-    # Calculate price changes
-    result["fx_return"] = result["fx_price"].pct_change()
-    result["comd_return"] = result["comd_price"].pct_change()
-
-    # Calculate position PnL with one-bar delay
-    result["fx_pnl"] = result["delayed_fx_position"] * result["fx_price"].diff()
-    result["comd_pnl"] = result["delayed_comd_position"] * result["comd_price"].diff()
-    result["total_pnl"] = result["fx_pnl"] + result["comd_pnl"]
-
-    # Add transaction costs
-    fx_bps = 1.0
-    cm_bps = 2.0
-    trade_flag = result["delayed_signal"].diff().abs() == 1
-    cost_fx = trade_flag.shift(1) * (fx_bps / 1e4) * result["delayed_fx_position"].abs()
-    cost_cm = (
-        trade_flag.shift(1) * (cm_bps / 1e4) * result["delayed_comd_position"].abs()
-    )
-    result["total_pnl"] = result["total_pnl"] - cost_fx - cost_cm
-
-    # Calculate cumulative PnL
-    result["total_pnl"] = result["total_pnl"].fillna(0.0)
-    result["cumulative_pnl"] = result["total_pnl"].cumsum()
-
-    # Fill NaN values in PnL and calculate equity curve
-    result["pnl"] = result["total_pnl"]
-    result["equity"] = (1.0 + result["pnl"]).cumprod()
+    result['equity'] = pd.Series(equity_curve, index=df.index[1:])
+    result['pnl'] = pd.Series(pnl_curve, index=df.index[1:])
+    result['position'] = pd.Series(position_curve, index=df.index[1:])
+    result['drawdown'] = pd.Series(drawdown_curve, index=df.index[1:])
     
-    # Calculate drawdown based on equity
-    running_max_equity = result["equity"].cummax()
-    drawdown_series = (result["equity"] - running_max_equity) / running_max_equity
-    # result["drawdown"] = drawdown_series.fillna(0.0)
-    result["drawdown"] = drawdown_series.replace([np.inf, -np.inf], np.nan).fillna(0.0)
-    
-    # Calculate trade statistics
-    result = _calculate_trade_stats(result)
-
-    # Calculate robust performance metrics
-    stats = {
-        "CAGR": _safe_cagr(result["equity"]),
-        "Sharpe": _safe_sharpe(result["pnl"]),
-        "MaxDD": float(
-            (
-                (result["equity"].cummax() - result["equity"])
-                / result["equity"].cummax()
-            ).max()
-        ),
-        "Trades": int((result["delayed_signal"].diff().abs() == 1).sum() / 2),
-        "HitRate": None,
-    }
+    result.fillna(method='ffill', inplace=True)
+    result.fillna(0, inplace=True)
 
     logger.info(
-        f"Backtest completed: {len(result)} bars, "
-        f"Final PnL: {result['cumulative_pnl'].iloc[-1]:.2f}, "
+        f"Backtest completed: Final Equity: {result['equity'].iloc[-1]:.2f}, "
         f"Max drawdown: {result['drawdown'].min():.2%}"
     )
 
@@ -424,7 +413,7 @@ def run_backtest(signals_df: pd.DataFrame, config: Dict, run_id: str = None) -> 
                     "trade_id": trade_id,
                     "entry_date": first_row.name,
                     "exit_date": last_row.name,
-                    "direction": first_row["delayed_signal"],
+                    "direction": first_row["position"],
                     "duration": len(trade_df),
                     "pnl": trade_df["total_pnl"].sum(),
                     "fx_entry": first_row["fx_price"],
@@ -445,6 +434,17 @@ def run_backtest(signals_df: pd.DataFrame, config: Dict, run_id: str = None) -> 
     
     # Save run artifacts
     pair_name = config.get("pair", "unknown")
+    reports_path = save_run_artifacts(pair_name, backtest_df, trades_df, config, comprehensive_metrics, run_id)
+
+    return backtest_df, comprehensive_metrics, reports_path
+_df, config)
+    
+    # Save run artifacts
+    pair_name = config.get("pair", "unknown")
+    reports_path = save_run_artifacts(pair_name, backtest_df, trades_df, config, comprehensive_metrics, run_id)
+
+    return backtest_df, comprehensive_metrics, reports_path
+air", "unknown")
     reports_path = save_run_artifacts(pair_name, backtest_df, trades_df, config, comprehensive_metrics, run_id)
 
     return backtest_df, comprehensive_metrics, reports_path
