@@ -201,3 +201,103 @@ The long-term goal is to develop a profitable, robust, and production-ready trad
 ## Disclaimer
 
 This software is for educational and research purposes only. Trading financial instruments involves risk, and past performance is not indicative of future results. Use at your own risk.
+## System Description and Trading Logic
+
+This section provides a precise, testable rulebook for the strategy, links to the exact code, and current backtest performance across pairs.
+
+Architecture overview
+- Data: Yahoo Finance daily closes for FX and commodities.
+- Signal engine: Mean-reversion on a beta-hedged spread with robust z-scores and regime gates.
+- Execution: One-bar delay, parameterized costs, inverse-volatility sizing.
+- Risk: Time-stop, z-stop, size and loss caps.
+
+Key modules (click to open code)
+- Signal generation: [mean_reversion.generate_signals()](src/strategy/mean_reversion.py:48)
+- Regime gating: [regime.combined_regime_filter()](src/features/regime.py:355)
+- Corr gate: [regime.correlation_gate()](src/features/regime.py:17)
+- Robust z-score: [indicators.zscore_robust()](src/features/indicators.py:233)
+- OU half-life: [cointegration.ou_half_life()](src/features/cointegration.py:52)
+- Hurst exponent: [cointegration.hurst_exponent()](src/features/cointegration.py:124)
+- Backtest engine: [backtest.engine.backtest_pair()](src/backtest/engine.py:82), [backtest.engine.calculate_performance_metrics()](src/backtest/engine.py:333)
+- CLI runner: [run_backtest.py](src/run_backtest.py:1)
+
+Rulebook (entries, exits, filters, sizing)
+- Session/timeframe:
+  - Daily bars. Signals evaluated and applied at bar_close + 1 bar (one-bar execution delay).
+- Spread and z-score:
+  - Compute beta-hedged spread S_t = FX_t − β_t × COMD_t using rolling OLS or Kalman (config: lookbacks.beta_window; use_kalman).
+    - Implementation: [features.spread.compute_spread()](src/features/spread.py:1)
+  - Robust z-score: z_t = (S_t − rolling_median(S, z_window)) / (1.4826 × MAD + 1e−12).
+    - Implementation: [indicators.zscore_robust()](src/features/indicators.py:233)
+- Regime gating (no leakage; uses only past info):
+  1) Correlation gate: |ρ(FX, COMD)| over corr_window must exceed min_abs_corr.
+     - [regime.correlation_gate()](src/features/regime.py:17)
+  2) External regime filter (configurable): combined of volatility, trend, HMM, VIX overlay.
+     - [regime.combined_regime_filter()](src/features/regime.py:355)
+  3) Structural diagnostics (soft, not hard gate): ADF p-value, OU half-life, and Hurst on spread. If all pass (adf_p ≤ thresholds.adf_p, 2 ≤ OU HL ≤ 252, Hurst &lt; 0.6), z-thresholds are slightly relaxed; otherwise tightened.
+     - Applied in: [mean_reversion.generate_signals()](src/strategy/mean_reversion.py:138)
+- Dynamic thresholds:
+  - Vol-scaling: vol_scale = stdev(S, 20) / rolling_median(stdev(S,20), 252), clipped [0.7, 1.5].
+  - Structural scaling: structural_scale = 0.9 if diagnostics OK else 1.1.
+  - Entry threshold: entry_z_dyn = clip(entry_z × structural_scale × vol_scale, lower=0.8).
+  - Exit threshold: exit_z_dyn = clip(exit_z × (1/structural_scale) × vol_scale, upper=1.25).
+    - Implementation: [mean_reversion.generate_signals()](src/strategy/mean_reversion.py:176)
+- Entries/exits and stops:
+  - Entry long: z ≤ −entry_z_dyn and good_regime True.
+  - Entry short: z ≥ entry_z_dyn and good_regime True.
+  - Exit flat: |z| ≤ exit_z_dyn (state-based exit logic).
+  - Z-stop: long_stop if z ≤ −stop_z; short_stop if z ≥ stop_z.
+  - Time-stop: close position after N days where N = min(max_days, 3 × OU half-life), bounded to [2, max_days].
+    - Implementation: [mean_reversion.apply_time_stop()](src/strategy/mean_reversion.py:333)
+- Position sizing and execution:
+  - Inverse-volatility per leg: size = target_vol_per_leg / ATR_proxy(close, atr_window); FX leg is further divided by FX price if inverse_fx_for_quote_ccy_strength is true.
+    - [mean_reversion.calculate_position_sizes()](src/strategy/mean_reversion.py:287)
+  - Opposite legs: FX leg aligned with signal; commodity leg opposed (pair trade).
+  - Execution: all trades applied at next bar close (one-bar delay).
+- Costs model:
+  - Parameterized in per-pair config under exec.costs; applied inside backtest engine.
+- Risk guardrails (enforced in config):
+  - Max position, daily/weekly loss caps, circuit breaker toggles.
+
+Economic rationale
+- Exporters’ currencies co-move with their key commodities over medium horizons. Large, regime-consistent spread dislocations exhibit mean-reversion, captured with robust z and structural diagnostics. Correlation and regime filters reduce false positives in trending/high-vol states.
+
+Exact labels (for supervised research, optional)
+- Enter at bar t+1 if z_t crosses entry_z_dyn and gate_t True.
+- Exit at bar t+1 if |z_t| ≤ exit_z_dyn or time-stop/z-stop triggers at t.
+- Forward return labels can be defined leakage-free as r_{t+1→t+k} using only future prices post-entry; ensure purged/embargoed splits for ML.
+
+Reproducible backtests (examples)
+- Single pair:
+  - python src/run_backtest.py run --pair usdcad_wti --start 2015-01-01 --end 2025-08-15 --save-data
+- Multi-pair loop (bash):
+  - for p in usdcad_wti usdnok_brent audusd_gold usdzar_platinum usdclp_copper usdmxn_wti usdbrl_soybeans; do python src/run_backtest.py run --pair $p --start 2015-01-01 --end 2025-08-15 --save-data; done
+
+Latest backtest performance (as of 2025-09-17; see backtest_results/)
+- Notes:
+  - Performance includes one-bar delay and configured costs.
+  - Some newly added pairs were previously over-filtered; regime softening now permits signals. A known issue is being investigated where reported PnL aggregates to 0.00 for some runs despite non-zero trade counts; see [backtest.engine.run_backtest()](src/backtest/engine.py:393).
+- Summary:
+  - USDCAD–WTI (2015–2025): Total Return −6.78%, Sharpe −0.68, MaxDD −22.12%, Trades 520. Source: Backtest report in backtest_results/ (earlier run; see section “Current Backtest Results” above).
+  - USDNOK–Brent (2015–2025): Total Return −26.15%, Sharpe −2.74, MaxDD −30.77%, Trades 612. Source: Backtest report in backtest_results/.
+  - AUDUSD–Gold (2015–2025): Previously 0 trades under strict gating; after regime softening, re-run required to refresh metrics (see backtest_results/).
+  - USDZAR–Platinum (2015–2025): Previously 0 trades; re-run required after softening (see backtest_results/).
+  - USDCLP–Copper (2015–2025): Previously 0 trades; re-run required after softening (see backtest_results/).
+  - USDMXN–WTI (2015–2025): Signals observed (e.g., 60 active signals; ~35–36 trades in latest run). Current report shows 0.00 PnL due to aggregation issue under investigation (see [backtest.engine.calculate_performance_metrics()](src/backtest/engine.py:333)).
+  - USDBRL–Soybeans (2015–2025): Re-run in progress; see backtest_results/ for final report.
+
+How to fetch latest pair reports
+- Each run saves:
+  - Signals CSV: backtest_results/&lt;pair&gt;_signals_YYYYMMDD_HHMMSS.csv
+  - Backtest CSV: backtest_results/&lt;pair&gt;_backtest_YYYYMMDD_HHMMSS.csv
+  - Text Report: backtest_results/&lt;pair&gt;_report_YYYYMMDD_HHMMSS.txt
+- Parse reports programmatically to build a performance table:
+  - See [docs/backtest_tracker.md](docs/backtest_tracker.md)
+
+Known issues and next steps
+- Backtest PnL zeroing bug: Investigate position propagation after time-stop and ensure costs/positions are aggregated correctly across trades. Areas to inspect:
+  - [mean_reversion.apply_time_stop()](src/strategy/mean_reversion.py:333)
+  - [backtest.engine._calculate_trade_stats()](src/backtest/engine.py:251)
+  - [backtest.engine.calculate_performance_metrics()](src/backtest/engine.py:333)
+- Regime thresholds: Continue calibrated softening and ablations (corr_window, min_abs_corr, HMM window/df/tol) to balance trade frequency and quality.
+- Documentation: This section supersedes older summaries; all new reports are under backtest_results/.

@@ -9,11 +9,15 @@ from datetime import datetime
 from pathlib import Path
 import sys
 import os
-from src.core.config import config
-from src.data.yahoo_loader import download_and_align_pair
-from src.strategy.mean_reversion import generate_signals_with_regime_filter
-from src.backtest.engine import run_backtest, create_backtest_report
-from src.utils.logging import setup_logging, trading_logger
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from core.config import config
+from data.yahoo_loader import download_and_align_pair
+from strategy.mean_reversion import generate_signals_with_regime_filter
+from backtest.engine import run_backtest, create_backtest_report
+from utils.logging import setup_logging, trading_logger
 
 # Run from project root; no path modification needed
 

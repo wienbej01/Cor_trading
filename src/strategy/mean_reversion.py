@@ -137,11 +137,11 @@ def generate_signals(
 
     # Regime gating (corr + cointegration diagnostics)
     regime_ok = correlation_gate(fx_series, comd_series, corr_window, min_abs_corr)
+
+    # Structural diagnostics evaluated once over full sample (used as soft prior, not a hard gate)
     p_adf = adf_pvalue(spread)
     adf_threshold = float(config.get("thresholds", {}).get("adf_p", 0.05))
     adf_ok = p_adf <= adf_threshold
-
-    # Structural mean-reversion diagnostics (evaluate once, persisted as scalars)
     try:
         ou_hl_val = float(ou_half_life(spread.dropna(), cap=252.0))
     except Exception:
@@ -151,14 +151,19 @@ def generate_signals(
     except Exception:
         hurst_val = 0.5
 
-    # Mean-reversion structural checks
-    hl_ok = (ou_hl_val >= 2.0) and (ou_hl_val <= 60.0)  # 2–60 trading days
-    hurst_ok = (hurst_val < 0.5)
-
+    # Soften structural checks: allow longer half-life and slightly anti-persistent series
+    hl_ok = (ou_hl_val >= 2.0) and (ou_hl_val <= 252.0)  # 2–252 trading days
+    hurst_ok = (hurst_val < 0.6)
     coint_ok = adf_ok and hl_ok and hurst_ok
 
-    # Final good_regime gate: correlation AND structural cointegration gate
-    good_regime = regime_ok & pd.Series(coint_ok, index=result.index)
+    # External regime filter from caller (HMM/trend/vol) if provided
+    if regime_filter is not None:
+        ext_gate = regime_filter.reindex(result.index).fillna(False)
+    else:
+        ext_gate = pd.Series(True, index=result.index)
+
+    # Final good_regime gate: correlation AND external regime; structural signal scales thresholds (not a hard block)
+    good_regime = regime_ok & ext_gate
 
     # Persist diagnostics
     result["good_regime"] = good_regime
@@ -173,8 +178,9 @@ def generate_signals(
     vol_med_252 = spread_vol_20.rolling(252, min_periods=20).median()
     vol_scale = (spread_vol_20 / vol_med_252).clip(0.7, 1.5).fillna(1.0)
 
-    entry_z_dyn = entry_z * vol_scale
-    exit_z_dyn = (exit_z * vol_scale).clip(upper=1.2)
+    structural_scale = 0.9 if coint_ok else 1.1
+    entry_z_dyn = (entry_z * structural_scale * vol_scale).clip(lower=0.8)
+    exit_z_dyn = (exit_z * (1.0 / structural_scale) * vol_scale).clip(upper=1.25)
 
     # Entries/exits
     enter_long = (z <= -entry_z_dyn) & good_regime
@@ -383,20 +389,27 @@ def apply_time_stop(signals_df: pd.DataFrame, max_days: int) -> pd.DataFrame:
                 position_entry_date = None
                 current_position = 0
 
-    # Recalculate positions after time stop
-    position_sizes = calculate_position_sizes(
-        result,
-        20,  # Default ATR window
-        (
-            result["fx_size"].iloc[0] * result.get("fx_atr", pd.Series([0.01], index=result.index)).iloc[0]
-            if "fx_size" in result.columns
-            else 0.01
-        ),
-        True,
-    )
+    # Recompute entry/exit flags after applying time stop to signals
+    result["entry"] = result["signal"].diff().abs() == 1
+    result["exit"] = (result["signal"].diff() != 0) & (result["signal"] == 0)
 
-    result["fx_position"] = position_sizes["fx_position"]
-    result["comd_position"] = position_sizes["comd_position"]
+    # Maintain existing sizes; avoid recomputing size with invalid params
+    if "fx_size" in result.columns and "comd_size" in result.columns:
+        result["fx_position"] = result["fx_size"] * result["signal"]
+        result["comd_position"] = -result["comd_size"] * result["signal"]
+    else:
+        logger.warning(
+            "fx_size/comd_size not found; recomputing sizes with defaults "
+            "(atr_window=20, target_vol_per_leg=0.01)"
+        )
+        position_sizes = calculate_position_sizes(
+            result,
+            20,           # Default ATR window
+            0.01,         # Default target vol per leg (1%)
+            True,         # Default inverse flag
+        )
+        result["fx_position"] = position_sizes["fx_position"]
+        result["comd_position"] = position_sizes["comd_position"]
 
     return result
 

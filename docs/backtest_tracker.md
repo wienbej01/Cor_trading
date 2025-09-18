@@ -7,3 +7,6 @@ This document tracks the results of the backtests run on the FX-Commodity correl
 | 2025-09-17 | usdcad_wti   | Disabled   | N/A                                          | -1.72%       | -0.16%        | -0.02        | -22.21%      | 23.70%   | 0.97          |
 | 2025-09-17 | usdcad_wti   | Enabled    | `n_states: 3`, `window: 126`, `df: 3.0`, `tol: 1e-4` | -15.80%      | -1.61%        | -0.21        | -30.23%      | 15.19%   | 0.81          |
 | 2025-09-17 | usdcad_wti   | Enabled    | `n_states: 3`, `window: 126`, `df: 5.0`, `tol: 1e-3`, `n_iter: 100` | -15.80%      | -1.61%        | -0.21        | -30.23%      | 15.19%   | 0.81          |
+
+| 2025-09-17 | usdbrl_soybeans | Enabled    | `n_states: 3`, `window: 126`, `df: 5.0`, `tol: 1e-3`, `n_iter: 100` | -5.93%       | -0.58%        | -0.09        | -23.52%     | 50.59%   | 0.93          |
+| 2025-09-17 | usdmxn_wti      | Enabled    | `n_states: 3`, `window: 126`, `df: 5.0`, `tol: 1e-3`, `n_iter: 100` | -2.41%       | -0.23%        | -0.03        | -13.25%     | 55.56%   | 0.95          |
