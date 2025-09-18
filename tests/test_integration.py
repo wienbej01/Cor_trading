@@ -15,14 +15,14 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock, patch, MagicMock
 import warnings
 
-from src.features.signal_optimization import SignalOptimizer
-from src.risk.manager import RiskManager, RiskConfig
-from src.exec.policy import ExecutionPolicy, ExecutionConfig
-from src.backtest.engine import BacktestEngine
-from src.backtest.rolling_metrics import RollingMetrics
-from src.backtest.distribution_analysis import DistributionAnalysis
-from src.ml.ensemble import ModelEnsemble, OLSModelWrapper, KalmanModelWrapper
-from src.interfaces.validation import ValidationInterface
+from features.signal_optimization import SignalOptimizer
+from risk.manager import RiskManager, RiskConfig
+from exec.policy import ExecutionPolicy, ExecutionConfig
+from backtest.engine import BacktestEngine
+from backtest.rolling_metrics import RollingMetrics
+from backtest.distribution_analysis import DistributionAnalysis
+from ml.ensemble import ModelEnsemble, OLSModelWrapper, KalmanModelWrapper
+from interfaces.validation import ValidationInterface
 from tests.test_utils import (
     generate_synthetic_market_data,
     generate_synthetic_equity_curve,

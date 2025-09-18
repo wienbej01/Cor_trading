@@ -7,7 +7,7 @@ from typing import Dict, Optional, Tuple
 import pandas as pd
 from loguru import logger
 
-from src.features.regime import (
+from features.regime import (
     trend_regime,
     volatility_regime,
     combined_regime_filter,

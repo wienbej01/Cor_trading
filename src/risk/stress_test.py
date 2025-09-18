@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 import pandas as pd
 import numpy as np
 from loguru import logger
-from src.risk.manager import RiskManager, RiskConfig
+from risk.manager import RiskManager, RiskConfig
 
 
 @dataclass

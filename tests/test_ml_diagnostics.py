@@ -5,7 +5,7 @@ Unit tests for the ML diagnostics module.
 import unittest
 import numpy as np
 import pandas as pd
-from src.ml.diagnostics import MLDiagnostics, calculate_permutation_importance
+from ml.diagnostics import MLDiagnostics, calculate_permutation_importance
 
 
 class TestMLDiagnostics(unittest.TestCase):

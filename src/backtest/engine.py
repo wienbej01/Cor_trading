@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
-from src.backtest.metrics import calculate_comprehensive_metrics, save_run_artifacts
+from backtest.metrics import calculate_comprehensive_metrics, save_run_artifacts
 
 # Opt-in to future pandas behavior
 pd.set_option('future.no_silent_downcasting', True)
@@ -434,17 +434,6 @@ def run_backtest(signals_df: pd.DataFrame, config: Dict, run_id: str = None) -> 
     
     # Save run artifacts
     pair_name = config.get("pair", "unknown")
-    reports_path = save_run_artifacts(pair_name, backtest_df, trades_df, config, comprehensive_metrics, run_id)
-
-    return backtest_df, comprehensive_metrics, reports_path
-_df, config)
-    
-    # Save run artifacts
-    pair_name = config.get("pair", "unknown")
-    reports_path = save_run_artifacts(pair_name, backtest_df, trades_df, config, comprehensive_metrics, run_id)
-
-    return backtest_df, comprehensive_metrics, reports_path
-air", "unknown")
     reports_path = save_run_artifacts(pair_name, backtest_df, trades_df, config, comprehensive_metrics, run_id)
 
     return backtest_df, comprehensive_metrics, reports_path

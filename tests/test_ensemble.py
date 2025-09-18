@@ -5,7 +5,7 @@ Unit tests for the ensemble model framework.
 import unittest
 import numpy as np
 import pandas as pd
-from src.ml.ensemble import (
+from ml.ensemble import (
     OLSModel,
     KalmanModel,
     RollingCorrelationModel,

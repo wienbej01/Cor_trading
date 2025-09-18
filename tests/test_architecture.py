@@ -18,12 +18,12 @@ from typing import Dict, Any, Optional, Union, List
 
 # TODO: Implement full FeaturePreparationInterface with validate_features, align_features, etc.
 # from src.interfaces.feature_preparation import FeaturePreparationInterface
-from src.interfaces.feature_preparation import FeaturePreparator
-from src.interfaces.validation import (
+from interfaces.feature_preparation import FeaturePreparator
+from interfaces.validation import (
     ValidationInterface,
     ParameterValidator,
 )
-from tests.test_utils import generate_synthetic_market_data, CustomAssertions
+from .test_utils import generate_synthetic_market_data, CustomAssertions
 
 
 # TODO: Implement concrete ParameterValidator, ValidationInterface classes

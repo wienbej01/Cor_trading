@@ -11,7 +11,7 @@ from scipy import stats
 import warnings
 
 # Import data leakage prevention tools
-from src.ml.data_leakage_prevention import DataLeakagePrevention
+from ml.data_leakage_prevention import DataLeakagePrevention
 
 # Suppress warnings
 warnings.filterwarnings('ignore')

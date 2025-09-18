@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from loguru import logger
 
-from src.features.indicators import zscore_robust
-from src.features.spread import compute_spread
+from features.indicators import zscore_robust
+from features.spread import compute_spread
 
 
 class SignalOptimizer:

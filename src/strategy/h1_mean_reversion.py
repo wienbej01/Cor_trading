@@ -10,17 +10,17 @@ import asyncio
 import pandas as pd
 from loguru import logger
 
-from src.features.indicators import atr_proxy, zscore_robust
-from src.features.spread import compute_spread
-from src.features.regime import correlation_gate
-from src.data.broker_api import get_multi_symbol_h1_data
+from features.indicators import atr_proxy, zscore_robust
+from features.spread import compute_spread
+from features.regime import correlation_gate
+from data.broker_api import get_multi_symbol_h1_data
 from statsmodels.tsa.stattools import adfuller
 
 # Import ensemble model
-from src.ml.ensemble import create_ensemble_model, ModelConfig
+from ml.ensemble import create_ensemble_model, ModelConfig
 
 # Import validation interfaces for consistent error handling
-from src.interfaces.validation import (
+from interfaces.validation import (
     validate_series_alignment,
     validate_trading_config,
     safe_parameter_extraction,

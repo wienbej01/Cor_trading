@@ -17,8 +17,8 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss
 from sklearn.calibration import calibration_curve
 
-from src.ml.models import create_baseline_model
-from src.ml.schema import DEFAULT_FEATURES
+from ml.models import create_baseline_model
+from ml.schema import DEFAULT_FEATURES
 
 def plot_calibration_curve(y_true, y_prob, n_bins=10):
     """Plots a calibration curve."""

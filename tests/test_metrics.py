@@ -10,7 +10,7 @@ import json
 import os
 import tempfile
 
-from src.backtest.metrics import (
+from backtest.metrics import (
     calculate_equity_stats,
     calculate_trade_stats,
     calculate_per_day_stats,

@@ -24,8 +24,5 @@ click>=8.0.0
 # Type hints
 typing-extensions>=4.0.0
 
-# Development tools (optional for production)
-pytest>=7.0.0
-black>=23.0.0
-flake8>=6.0.0
-mypy>=1.0.0
+# Added for generating reports
+tabulate

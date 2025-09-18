@@ -463,7 +463,7 @@ class LSTMModel(BaseModel):
         return None
 
 
-class EnsembleModel:
+class ModelEnsemble:
     """Ensemble model that combines predictions from multiple models."""
 
     def __init__(self, config: ModelConfig = None):
@@ -582,7 +582,7 @@ class EnsembleModel:
         return importances
 
 
-def create_ensemble_model(config: ModelConfig = None) -> EnsembleModel:
+def create_ensemble_model(config: ModelConfig = None) -> ModelEnsemble:
     """
     Create an ensemble model with default or provided configuration.
 
@@ -619,10 +619,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 # Import existing modules
-from src.strategy.h1_mean_reversion import generate_h1_signals_from_data
-from src.strategy.d1_mean_reversion import generate_d1_signals
-from src.data.broker_api import get_h1_data, get_multi_symbol_h1_data
-from src.data.yahoo_loader import download_daily, align_series
+from strategy.h1_mean_reversion import generate_h1_signals_from_data
+from strategy.d1_mean_reversion import generate_d1_signals
+from data.broker_api import get_h1_data, get_multi_symbol_h1_data
+from data.yahoo_loader import download_daily, align_series
 
 
 @dataclass

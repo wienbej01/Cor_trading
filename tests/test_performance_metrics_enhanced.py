@@ -16,253 +16,226 @@ from unittest.mock import Mock, patch
 import warnings
 from scipy import stats
 
-from src.backtest.rolling_metrics import RollingMetrics
-from src.backtest.distribution_analysis import DistributionAnalysis
-from tests.test_utils import (
+from backtest.rolling_metrics import (
+    calculate_rolling_sharpe,
+    calculate_rolling_sortino,
+    calculate_rolling_max_drawdown,
+    calculate_rolling_calmar,
+    calculate_rolling_metrics,
+)
+from backtest.distribution_analysis import DistributionAnalysis
+from .test_utils import (
     generate_synthetic_market_data,
     generate_synthetic_equity_curve,
     CustomAssertions,
 )
 
 
-class TestRollingMetrics:
-    """Test RollingMetrics class."""
 
-    @pytest.fixture
-    def rolling_metrics(self):
-        """Create a RollingMetrics instance for testing."""
-        return RollingMetrics()
 
-    @pytest.fixture
-    def sample_returns(self):
-        """Create sample returns data for testing."""
-        np.random.seed(42)
-        dates = pd.date_range("2020-01-01", "2022-12-31", freq="D")
+def test_calculate_rolling_sharpe(sample_returns):
+    """Test rolling Sharpe ratio calculation."""
+    window = 63  # ~3 months of daily data
 
-        # Generate returns with some characteristics
-        returns = pd.Series(np.random.normal(0.001, 0.02, len(dates)), index=dates)
+    rolling_sharpe = calculate_rolling_sharpe(
+        sample_returns, window=window
+    )
 
-        # Add some drawdown periods
-        returns.iloc[200:250] = np.random.normal(-0.005, 0.01, 50)
-        returns.iloc[400:450] = np.random.normal(-0.008, 0.015, 50)
+    # Check that result is a Series
+    assert isinstance(rolling_sharpe, pd.Series)
 
-        return returns
+    # Check that index matches input
+    assert rolling_sharpe.index.equals(sample_returns.index)
 
-    @pytest.fixture
-    def sample_equity_curve(self):
-        """Create sample equity curve for testing."""
-        return generate_synthetic_equity_curve(
-            pd.date_range("2020-01-01", "2022-12-31", freq="D"),
-            base_equity=100000,
-            annual_return=0.10,
-            annual_volatility=0.15,
-            max_drawdown=0.20,
-            seed=42,
-        )
+    # Check that values are reasonable (NaN for early periods)
+    assert rolling_sharpe.iloc[: window - 1].isna().all()
+    assert not rolling_sharpe.iloc[window:].isna().all()
 
-    def test_calculate_rolling_sharpe(self, rolling_metrics, sample_returns):
-        """Test rolling Sharpe ratio calculation."""
-        window = 63  # ~3 months of daily data
+    # Check that Sharpe ratios are within reasonable bounds
+    valid_sharpe = rolling_sharpe.dropna()
+    assert not valid_sharpe.empty
+    assert (valid_sharpe.abs() < 10).all()  # Reasonable bounds
 
-        rolling_sharpe = rolling_metrics.calculate_rolling_sharpe(
+def test_calculate_rolling_sortino(sample_returns):
+    """Test rolling Sortino ratio calculation."""
+    window = 63
+
+    rolling_sortino = calculate_rolling_sortino(
+        sample_returns, window=window
+    )
+
+    # Check that result is a Series
+    assert isinstance(rolling_sortino, pd.Series)
+
+    # Check that index matches input
+    assert rolling_sortino.index.equals(sample_returns.index)
+
+    # Check that values are reasonable
+    assert rolling_sortino.iloc[: window - 1].isna().all()
+    assert not rolling_sortino.iloc[window:].isna().all()
+
+    # Sortino should generally be higher than Sharpe for same data
+    rolling_sharpe = calculate_rolling_sharpe(
+        sample_returns, window=window
+    )
+    valid_sortino = rolling_sortino.dropna()
+    valid_sharpe = rolling_sharpe.dropna()
+
+    # For most periods, Sortino should be >= Sharpe
+    assert (valid_sortino >= valid_sharpe).mean() > 0.5
+
+def test_calculate_rolling_drawdown(sample_returns):
+    """Test rolling drawdown calculation."""
+    window = 63
+
+    rolling_dd = calculate_rolling_max_drawdown(
+        sample_returns, window=window
+    )
+
+    # Check that result is a Series
+    assert isinstance(rolling_dd, pd.Series)
+
+    # Check that index matches input
+    assert rolling_dd.index.equals(sample_returns.index)
+
+    # Check that values are reasonable
+    assert rolling_dd.iloc[: window - 1].isna().all()
+    assert not rolling_dd.iloc[window:].isna().all()
+
+    # Drawdown should be <= 0
+    valid_dd = rolling_dd.dropna()
+    assert (valid_dd <= 0).all()
+
+    # Check that we have some significant drawdowns
+    assert valid_dd.min() < -0.05  # At least 5% drawdown
+
+def test_calculate_rolling_calmar(sample_returns):
+    """Test rolling Calmar ratio calculation."""
+    window = 126  # ~6 months
+
+    rolling_calmar = calculate_rolling_calmar(
+        sample_returns, window=window
+    )
+
+    # Check that result is a Series
+    assert isinstance(rolling_calmar, pd.Series)
+
+    # Check that index matches input
+    assert rolling_calmar.index.equals(sample_returns.index)
+
+    # Check that values are reasonable
+    assert rolling_calmar.iloc[: window - 1].isna().all()
+    assert not rolling_calmar.iloc[window:].isna().all()
+
+    # Calmar ratio can be positive or negative
+    valid_calmar = rolling_calmar.dropna()
+    assert not valid_calmar.empty
+
+def test_calculate_rolling_win_rate(sample_returns):
+    """Test rolling win rate calculation."""
+    window = 21  # ~1 month
+
+    rolling_win_rate = calculate_rolling_win_rate(
+        sample_returns, window=window
+    )
+
+    # Check that result is a Series
+    assert isinstance(rolling_win_rate, pd.Series)
+
+    # Check that index matches input
+    assert rolling_win_rate.index.equals(sample_returns.index)
+
+    # Check that values are reasonable
+    assert rolling_win_rate.iloc[: window - 1].isna().all()
+    assert not rolling_win_rate.iloc[window:].isna().all()
+
+    # Win rate should be between 0 and 1
+    valid_win_rate = rolling_win_rate.dropna()
+    assert (valid_win_rate >= 0).all()
+    assert (valid_win_rate <= 1).all()
+
+def test_calculate_rolling_metrics_comprehensive(sample_returns):
+    """Test comprehensive rolling metrics calculation."""
+    window = 63
+
+    metrics_df = calculate_rolling_metrics(
+        sample_returns, window=window
+    )
+
+    # Check that result is a DataFrame
+    assert isinstance(metrics_df, pd.DataFrame)
+
+    # Check that all expected metrics are present
+    expected_metrics = ["sharpe", "sortino", "drawdown", "calmar", "win_rate"]
+    for metric in expected_metrics:
+        assert metric in metrics_df.columns
+
+    # Check that index matches input
+    assert metrics_df.index.equals(sample_returns.index)
+
+    # Check that values are reasonable
+    for metric in expected_metrics:
+        assert not metrics_df[metric].dropna().empty
+
+def test_insufficient_data_handling():
+    """Test handling of insufficient data."""
+    # Very short series
+    short_dates = pd.date_range("2020-01-01", "2020-01-10")
+    short_returns = pd.Series(
+        [0.01, -0.005, 0.02, -0.01, 0.005, -0.015, 0.01, -0.005, 0.02, -0.01],
+        index=short_dates,
+    )
+
+    window = 63  # Much larger than data length
+
+    metrics_df = calculate_rolling_metrics(
+        short_returns, window=window
+    )
+
+    # Should handle gracefully - mostly NaN values
+    assert isinstance(metrics_df, pd.DataFrame)
+    assert metrics_df.isna().all().all()
+
+def test_nan_values_in_input(sample_returns):
+    """Test handling of NaN values in input."""
+    # Add some NaN values
+    returns_with_nan = sample_returns.copy()
+    returns_with_nan.iloc[100:105] = np.nan
+    returns_with_nan.iloc[200:205] = np.nan
+
+    window = 63
+
+    metrics_df = calculate_rolling_metrics(
+        returns_with_nan, window=window
+    )
+
+    # Should handle gracefully
+    assert isinstance(metrics_df, pd.DataFrame)
+    assert len(metrics_df) == len(returns_with_nan)
+
+    # Some values should be non-NaN
+    assert not metrics_df.isna().all().all()
+
+def test_different_window_sizes(sample_returns):
+    """Test with different window sizes."""
+    windows = [21, 63, 126, 252]  # 1 month, 3 months, 6 months, 1 year
+
+    for window in windows:
+        metrics_df = calculate_rolling_metrics(
             sample_returns, window=window
         )
 
-        # Check that result is a Series
-        assert isinstance(rolling_sharpe, pd.Series)
-
-        # Check that index matches input
-        assert rolling_sharpe.index.equals(sample_returns.index)
-
-        # Check that values are reasonable (NaN for early periods)
-        assert rolling_sharpe.iloc[: window - 1].isna().all()
-        assert not rolling_sharpe.iloc[window:].isna().all()
-
-        # Check that Sharpe ratios are within reasonable bounds
-        valid_sharpe = rolling_sharpe.dropna()
-        assert not valid_sharpe.empty
-        assert (valid_sharpe.abs() < 10).all()  # Reasonable bounds
-
-    def test_calculate_rolling_sortino(self, rolling_metrics, sample_returns):
-        """Test rolling Sortino ratio calculation."""
-        window = 63
-
-        rolling_sortino = rolling_metrics.calculate_rolling_sortino(
-            sample_returns, window=window
-        )
-
-        # Check that result is a Series
-        assert isinstance(rolling_sortino, pd.Series)
-
-        # Check that index matches input
-        assert rolling_sortino.index.equals(sample_returns.index)
-
-        # Check that values are reasonable
-        assert rolling_sortino.iloc[: window - 1].isna().all()
-        assert not rolling_sortino.iloc[window:].isna().all()
-
-        # Sortino should generally be higher than Sharpe for same data
-        rolling_sharpe = rolling_metrics.calculate_rolling_sharpe(
-            sample_returns, window=window
-        )
-        valid_sortino = rolling_sortino.dropna()
-        valid_sharpe = rolling_sharpe.dropna()
-
-        # For most periods, Sortino should be >= Sharpe
-        assert (valid_sortino >= valid_sharpe).mean() > 0.5
-
-    def test_calculate_rolling_drawdown(self, rolling_metrics, sample_returns):
-        """Test rolling drawdown calculation."""
-        window = 63
-
-        rolling_dd = rolling_metrics.calculate_rolling_drawdown(
-            sample_returns, window=window
-        )
-
-        # Check that result is a Series
-        assert isinstance(rolling_dd, pd.Series)
-
-        # Check that index matches input
-        assert rolling_dd.index.equals(sample_returns.index)
-
-        # Check that values are reasonable
-        assert rolling_dd.iloc[: window - 1].isna().all()
-        assert not rolling_dd.iloc[window:].isna().all()
-
-        # Drawdown should be <= 0
-        valid_dd = rolling_dd.dropna()
-        assert (valid_dd <= 0).all()
-
-        # Check that we have some significant drawdowns
-        assert valid_dd.min() < -0.05  # At least 5% drawdown
-
-    def test_calculate_rolling_calmar(self, rolling_metrics, sample_returns):
-        """Test rolling Calmar ratio calculation."""
-        window = 126  # ~6 months
-
-        rolling_calmar = rolling_metrics.calculate_rolling_calmar(
-            sample_returns, window=window
-        )
-
-        # Check that result is a Series
-        assert isinstance(rolling_calmar, pd.Series)
-
-        # Check that index matches input
-        assert rolling_calmar.index.equals(sample_returns.index)
-
-        # Check that values are reasonable
-        assert rolling_calmar.iloc[: window - 1].isna().all()
-        assert not rolling_calmar.iloc[window:].isna().all()
-
-        # Calmar ratio can be positive or negative
-        valid_calmar = rolling_calmar.dropna()
-        assert not valid_calmar.empty
-
-    def test_calculate_rolling_win_rate(self, rolling_metrics, sample_returns):
-        """Test rolling win rate calculation."""
-        window = 21  # ~1 month
-
-        rolling_win_rate = rolling_metrics.calculate_rolling_win_rate(
-            sample_returns, window=window
-        )
-
-        # Check that result is a Series
-        assert isinstance(rolling_win_rate, pd.Series)
-
-        # Check that index matches input
-        assert rolling_win_rate.index.equals(sample_returns.index)
-
-        # Check that values are reasonable
-        assert rolling_win_rate.iloc[: window - 1].isna().all()
-        assert not rolling_win_rate.iloc[window:].isna().all()
-
-        # Win rate should be between 0 and 1
-        valid_win_rate = rolling_win_rate.dropna()
-        assert (valid_win_rate >= 0).all()
-        assert (valid_win_rate <= 1).all()
-
-    def test_calculate_rolling_metrics_comprehensive(
-        self, rolling_metrics, sample_returns
-    ):
-        """Test comprehensive rolling metrics calculation."""
-        window = 63
-
-        metrics_df = rolling_metrics.calculate_rolling_metrics(
-            sample_returns, window=window
-        )
-
-        # Check that result is a DataFrame
+        # Should work for all window sizes
         assert isinstance(metrics_df, pd.DataFrame)
+        assert len(metrics_df) == len(sample_returns)
 
-        # Check that all expected metrics are present
-        expected_metrics = ["sharpe", "sortino", "drawdown", "calmar", "win_rate"]
-        for metric in expected_metrics:
-            assert metric in metrics_df.columns
+        # Earlier values should be NaN
+        assert metrics_df.iloc[: window - 1].isna().all().all()
 
-        # Check that index matches input
-        assert metrics_df.index.equals(sample_returns.index)
+        # Later values should not all be NaN
+        assert not metrics_df.iloc[window:].isna().all().all()
 
-        # Check that values are reasonable
-        for metric in expected_metrics:
-            assert not metrics_df[metric].dropna().empty
 
-    def test_insufficient_data_handling(self, rolling_metrics):
-        """Test handling of insufficient data."""
-        # Very short series
-        short_dates = pd.date_range("2020-01-01", "2020-01-10")
-        short_returns = pd.Series(
-            [0.01, -0.005, 0.02, -0.01, 0.005, -0.015, 0.01, -0.005, 0.02, -0.01],
-            index=short_dates,
-        )
-
-        window = 63  # Much larger than data length
-
-        metrics_df = rolling_metrics.calculate_rolling_metrics(
-            short_returns, window=window
-        )
-
-        # Should handle gracefully - mostly NaN values
-        assert isinstance(metrics_df, pd.DataFrame)
-        assert metrics_df.isna().all().all()
-
-    def test_nan_values_in_input(self, rolling_metrics, sample_returns):
-        """Test handling of NaN values in input."""
-        # Add some NaN values
-        returns_with_nan = sample_returns.copy()
-        returns_with_nan.iloc[100:105] = np.nan
-        returns_with_nan.iloc[200:205] = np.nan
-
-        window = 63
-
-        metrics_df = rolling_metrics.calculate_rolling_metrics(
-            returns_with_nan, window=window
-        )
-
-        # Should handle NaN values gracefully
-        assert isinstance(metrics_df, pd.DataFrame)
-        assert len(metrics_df) == len(returns_with_nan)
-
-        # Some values should be non-NaN
-        assert not metrics_df.isna().all().all()
-
-    def test_different_window_sizes(self, rolling_metrics, sample_returns):
-        """Test with different window sizes."""
-        windows = [21, 63, 126, 252]  # 1 month, 3 months, 6 months, 1 year
-
-        for window in windows:
-            metrics_df = rolling_metrics.calculate_rolling_metrics(
-                sample_returns, window=window
-            )
-
-            # Should work for all window sizes
-            assert isinstance(metrics_df, pd.DataFrame)
-            assert len(metrics_df) == len(sample_returns)
-
-            # Earlier values should be NaN
-            assert metrics_df.iloc[: window - 1].isna().all().all()
-
-            # Later values should not all be NaN
-            assert not metrics_df.iloc[window:].isna().all().all()
 
 
 class TestDistributionAnalysis:

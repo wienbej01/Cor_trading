@@ -5,7 +5,7 @@ Unit tests for the parallel backtesting framework.
 import unittest
 import pandas as pd
 import numpy as np
-from src.backtest.parallel import (
+from backtest.parallel import (
     BacktestConfig,
     BacktestResult,
     ParallelBacktester,

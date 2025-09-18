@@ -10,7 +10,7 @@ import pandas as pd
 from loguru import logger
 
 # Import feature engineering functions
-from src.ml.feature_engineering import (
+from ml.feature_engineering import (
     create_comprehensive_features,
     create_training_labels
 )

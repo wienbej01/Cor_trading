@@ -21,15 +21,15 @@ import warnings
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.neural_network import MLPRegressor
 
-from src.ml.ensemble import (
+from ml.ensemble import (
     ModelEnsemble,
     ModelWrapper,
     OLSModelWrapper,
     KalmanModelWrapper,
     RollingCorrelationModelWrapper,
 )
-from src.ml.diagnostics import ModelDiagnostics
-from src.backtest.parallel import ParallelBacktest
+from ml.diagnostics import ModelDiagnostics
+from backtest.parallel import ParallelBacktest
 from tests.test_utils import generate_synthetic_market_data, CustomAssertions
 
 

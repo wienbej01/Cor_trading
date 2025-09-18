@@ -4,7 +4,7 @@ from pathlib import Path
 from loguru import logger
 
 # Assuming schema is in the ml directory, and project root is in path
-from src.ml.schema import DEFAULT_FEATURES
+from ml.schema import DEFAULT_FEATURES
 
 class TradeFilter:
     """

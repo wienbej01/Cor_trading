@@ -14,7 +14,7 @@ import warnings
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore")
 
-from src.backtest.engine import run_backtest
+from backtest.engine import run_backtest
 
 
 @dataclass

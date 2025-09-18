@@ -47,7 +47,7 @@ class DefaultFeaturePreparator(FeaturePreparator):
             DataFrame with prepared features.
         """
         # Import here to avoid circular dependencies
-        from src.strategy.mean_reversion import _prepare_features_for_model
+        from strategy.mean_reversion import _prepare_features_for_model
 
         return _prepare_features_for_model(fx_series, comd_series, config)
 
