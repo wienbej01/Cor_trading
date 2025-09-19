@@ -37,11 +37,13 @@ logger = logging.getLogger(__name__)
 class DatasetBuilder:
     """Builds ML datasets for trade filter training."""
 
-    def __init__(self, pair: str, schema: Optional[MLSchema] = None):
+    def __init__(self, pair: str, schema: Optional[MLSchema] = None, min_history: int = 60):
         self.pair = pair
         self.schema = schema or MLSchema()
         self.data = None
         self.spread_data = None
+        # Minimum bars of history required for feature computation per signal
+        self.min_history = int(min_history)
 
     def load_data(self, start_date: str, end_date: str) -> pd.DataFrame:
         """Load and prepare raw data for the pair."""
@@ -155,7 +157,7 @@ class DatasetBuilder:
                 # Get data up to this point (no lookahead)
                 historical_data = self.data.loc[:idx].copy()
 
-                if len(historical_data) < 60:  # Minimum history required
+                if len(historical_data) < self.min_history:  # Minimum history required (configurable)
                     # Not enough history for this signal; skip
                     continue
 
@@ -435,6 +437,10 @@ def main():
     parser.add_argument('--end', required=True, help='End date (YYYY-MM-DD)')
     parser.add_argument('--h', type=int, default=20, help='Label horizon in bars')
     parser.add_argument('--rr', type=float, default=1.5, help='Risk-reward threshold')
+    parser.add_argument('--z-threshold', type=float, default=2.0, help='Entry z-score threshold for candidate signals')
+    parser.add_argument('--min-history', type=int, default=60, help='Minimum bars of history required per signal for features')
+    parser.add_argument('--embargo-bars', type=int, default=5, help='Embargo window (bars) applied after positive labels')
+    parser.add_argument('--purge-window', type=int, default=20, help='Purge window (bars) to avoid overlapping label horizons')
     parser.add_argument('--output', default='data/ml', help='Output directory')
     parser.add_argument('--dry-run', action='store_true', help='Build dataset but do not save parquet files (debug mode)')
 
@@ -442,13 +448,18 @@ def main():
 
     setup_logging()
 
-    # Update schema with args
-    label_spec = LabelSpec(horizon_bars=args.h, rr_threshold=args.rr)
+    # Update schema with args (leakage controls configurable from CLI)
+    label_spec = LabelSpec(
+        horizon_bars=args.h,
+        rr_threshold=args.rr,
+        embargo_bars=args.embargo_bars,
+        purge_window=args.purge_window,
+    )
     schema = MLSchema(label_spec=label_spec)
 
     # Build dataset
-    builder = DatasetBuilder(args.pair, schema)
-    features, labels = builder.build_dataset(args.start, args.end)
+    builder = DatasetBuilder(args.pair, schema, min_history=args.min_history)
+    features, labels = builder.build_dataset(args.start, args.end, z_threshold=args.z_threshold)
 
     # Dry-run mode: summarize and exit without writing files
     if args.dry_run:
