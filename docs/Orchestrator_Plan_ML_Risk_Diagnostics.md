@@ -51,7 +51,7 @@
 
 **Goal:** Make every run emit uniform, comparable metrics; add regime/participation gates.
 
-**P1.1 – Unified Metrics & Run Artifacts**
+**P1.1 – Unified Metrics & Run Artifacts** ✅ Completed
 **Mode:** engineering-platform
 **Files:**
 
