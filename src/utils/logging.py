@@ -79,6 +79,9 @@ def setup_logging(
         log_format = (
             "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
             "<level>{level: <8}</level> | "
+            "<cyan>{extra[run_id]}</cyan> | "
+            "<cyan>{extra[seed]}</cyan> | "
+            "<cyan>{extra[git_sha]}</cyan> | "
             "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
             "<level>{message}</level>"
         )
@@ -99,6 +102,10 @@ def setup_logging(
             retention=retention,
             compression="zip",
         )
+
+    # Configure logger to include extra data
+    git_info = get_git_info()
+    logger.configure(extra={"run_id": run_id, "seed": seed, "git_sha": git_info.get("commit_sha")})
 
     logger.info(f"Logging configured with level: {log_level}")
 
