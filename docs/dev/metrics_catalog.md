@@ -1,139 +1,42 @@
 # Metrics Catalog
 
-This document describes all metrics calculated and reported by the FX-Commodity correlation arbitrage system.
+This document catalogs the metrics used in the backtesting engine.
 
-## Equity Metrics
+## Equity Statistics
 
-| Metric | Description | Formula | Unit |
-|--------|-------------|---------|------|
-| `total_return` | Total return over the backtest period | (Final Equity / Initial Equity) - 1 | Percentage |
-| `annual_return` | Annualized return | (1 + Total Return)^(1/Years) - 1 | Percentage |
-| `volatility` | Annualized volatility of returns | std(daily_returns) * sqrt(252) | Percentage |
-| `sharpe_ratio` | Risk-adjusted return | Annual Return / Volatility | Ratio |
-| `max_drawdown` | Maximum peak-to-trough decline | min((equity - running_max) / running_max) | Percentage |
-| `calmar_ratio` | Return-to-max-drawdown ratio | abs(Annual Return / Max Drawdown) | Ratio |
-| `ulcer_index` | Measure of downside risk | sqrt(mean(drawdown^2)) | Index |
+- **total_return**: The total return of the strategy over the entire backtest period.
+- **annual_return**: The annualized return of the strategy.
+- **volatility**: The annualized volatility of the strategy's returns.
+- **sharpe_ratio**: The Sharpe ratio of the strategy.
+- **max_drawdown**: The maximum drawdown of the strategy.
+- **calmar_ratio**: The Calmar ratio of the strategy.
+- **ulcer_index**: The Ulcer index of the strategy.
 
-## Trade Metrics
+## Trade Statistics
 
-| Metric | Description | Formula | Unit |
-|--------|-------------|---------|------|
-| `total_trades` | Total number of trades executed | count | Number |
-| `winning_trades` | Number of profitable trades | count(pnl > 0) | Number |
-| `losing_trades` | Number of unprofitable trades | count(pnl < 0) | Number |
-| `win_rate` | Percentage of winning trades | Winning Trades / Total Trades | Percentage |
-| `avg_win` | Average profit per winning trade | mean(pnl where pnl > 0) | Currency |
-| `avg_loss` | Average loss per losing trade | mean(pnl where pnl < 0) | Currency |
-| `profit_factor` | Gross wins to gross losses ratio | Gross Wins / abs(Gross Losses) | Ratio |
-| `max_win` | Largest winning trade | max(pnl) | Currency |
-| `max_loss` | Largest losing trade | min(pnl) | Currency |
-| `avg_duration` | Average trade duration | mean(duration) | Days |
+- **total_trades**: The total number of trades executed.
+- **winning_trades**: The number of winning trades.
+- **losing_trades**: The number of losing trades.
+- **win_rate**: The percentage of winning trades.
+- **avg_win**: The average profit of a winning trade.
+- **avg_loss**: The average loss of a losing trade.
+- **profit_factor**: The ratio of the sum of profits from winning trades to the sum of losses from losing trades.
+- **max_win**: The maximum profit of a single trade.
+- **max_loss**: The maximum loss of a single trade.
+- **avg_duration**: The average duration of a trade in bars.
 
-## Daily Metrics
+## Per-Day Statistics
 
-| Metric | Description | Formula | Unit |
-|--------|-------------|---------|------|
-| `best_day` | Best daily return | max(daily_pnl) | Currency |
-| `worst_day` | Worst daily return | min(daily_pnl) | Currency |
-| `avg_daily_return` | Average daily return | mean(daily_pnl) | Currency |
-| `daily_volatility` | Volatility of daily returns | std(daily_pnl) | Currency |
-| `positive_days` | Number of positive return days | count(daily_pnl > 0) | Number |
-| `negative_days` | Number of negative return days | count(daily_pnl < 0) | Number |
-| `daily_win_rate` | Percentage of positive return days | Positive Days / Total Days | Percentage |
+- **best_day**: The best daily return.
+- **worst_day**: The worst daily return.
+- **avg_daily_return**: The average daily return.
+- **daily_volatility**: The standard deviation of daily returns.
+- **positive_days**: The number of days with positive returns.
+- **negative_days**: The number of days with negative returns.
+- **daily_win_rate**: The percentage of days with positive returns.
 
-## Cost Metrics
+## Cost and Slippage Statistics
 
-| Metric | Description | Formula | Unit |
-|--------|-------------|---------|------|
-| `total_costs` | Total transaction costs | sum(costs) | Currency |
-| `costs_per_trade` | Average cost per trade | Total Costs / Total Trades | Currency |
-| `costs_pct_of_pnl` | Costs as percentage of gross PnL | abs(Total Costs / Gross PnL) * 100 | Percentage |
-
-## Configuration Metadata
-
-| Field | Description | Example |
-|-------|-------------|---------|
-| `pair` | Trading pair identifier | "usdcad_wti" |
-| `start_date` | Backtest start date | "2015-01-01" |
-| `end_date` | Backtest end date | "2025-08-15" |
-
-## Run Artifacts
-
-Each backtest run produces the following artifacts in `reports/<pair>/<run_id>/`:
-
-1. `summary.json` - Comprehensive performance metrics in JSON format
-2. `trades.csv` - Detailed trade-level data in CSV format
-3. `config.json` - Configuration used for the backtest in JSON format
-
-### summary.json Structure
-
-```json
-{
-  "timestamp": "2025-09-18T02:23:45.123456",
-  "equity": {
-    "total_return": 0.15,
-    "annual_return": 0.08,
-    "volatility": 0.12,
-    "sharpe_ratio": 0.67,
-    "max_drawdown": -0.05,
-    "calmar_ratio": 1.6,
-    "ulcer_index": 0.02
-  },
-  "trades": {
-    "total_trades": 120,
-    "winning_trades": 70,
-    "losing_trades": 50,
-    "win_rate": 0.58,
-    "avg_win": 1500.0,
-    "avg_loss": -800.0,
-    "profit_factor": 1.8,
-    "max_win": 5000.0,
-    "max_loss": -3000.0,
-    "avg_duration": 15.2
-  },
-  "daily": {
-    "best_day": 2500.0,
-    "worst_day": -4000.0,
-    "avg_daily_return": 120.0,
-    "daily_volatility": 800.0,
-    "positive_days": 180,
-    "negative_days": 120,
-    "daily_win_rate": 0.6
-  },
-  "costs": {
-    "total_costs": -12000.0,
-    "costs_per_trade": -100.0,
-    "costs_pct_of_pnl": 8.5
-  },
-  "config": {
-    "pair": "usdcad_wti",
-    "start_date": "2015-01-01",
-    "end_date": "2025-08-15"
-  }
-}
-```
-
-### trades.csv Schema
-
-| Column | Description | Type |
-|--------|-------------|------|
-| `trade_id` | Unique trade identifier | int64 |
-| `entry_date` | Trade entry date | datetime |
-| `exit_date` | Trade exit date | datetime |
-| `direction` | Trade direction (1=long, -1=short) | int64 |
-| `duration` | Trade duration in days | int64 |
-| `pnl` | Trade profit/loss | float64 |
-| `fx_entry` | FX entry price | float64 |
-| `fx_exit` | FX exit price | float64 |
-| `comd_entry` | Commodity entry price | float64 |
-| `comd_exit` | Commodity exit price | float64 |
-| `entry_z` | Z-score at entry (if available) | float64 |
-| `exit_z` | Z-score at exit (if available) | float64 |
-
-### config.json Structure
-
-Contains the complete configuration used for the backtest, including:
-- Strategy parameters
-- Risk management settings
-- Data configuration
-- Pair-specific settings
+- **total_costs**: The total costs incurred from slippage and commissions.
+- **costs_per_trade**: The average cost per trade.
+- **costs_pct_of_pnl**: The total costs as a percentage of the total profit and loss.
