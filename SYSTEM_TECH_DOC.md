@@ -8,6 +8,21 @@ This document describes the technical architecture and process flow of the Cor T
 **Commit:** 32e4166
 **Constitutional Fitness Score (CFS):** 7/10 (Enhanced diagnostics; needs ML/risk enhancements)
 
+## Program Overview – ML/Risk/Diagnostics
+Version: v0.4.0-ml-risk-diagnostics-prep
+Date: 2025-09-19 (UTC)
+Commit: ba8241d
+
+This section initiates the ML Risk & Diagnostics program per the orchestrator plan in [docs/Orchestrator_Plan_ML_Risk_Diagnostics.md](docs/Orchestrator_Plan_ML_Risk_Diagnostics.md). Scope includes establishing diagnostics baselines, integrating an ML trade filter alongside existing strategies, and formalizing risk controls and robustness checks within the backtest and execution stack. This overview will be updated incrementally as phases progress.
+
+Non-Negotiables:
+- No lookahead bias; strict temporal ordering across data ingestion, feature preparation, training, and backtesting.
+- Costs and slippage included in all PnL, decisions, and reported metrics.
+- Parsimony before complexity; avoid overfitting and maintain explainability.
+- Deterministic seeds/configs and a full audit trail (run_id, config, environment, and git SHA).
+
+Note: This section is a living reference for the ML/risk/diagnostics track and will be revised in subsequent commits as milestones from the orchestrator plan are completed.
+
 ## Process Flow
 
 ### 1. Data Ingestion
