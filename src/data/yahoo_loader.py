@@ -6,6 +6,7 @@ Handles downloading and aligning financial time series data with comprehensive l
 from datetime import datetime
 from typing import Optional
 import time
+import os
 
 import pandas as pd
 import yfinance as yf
@@ -28,27 +29,107 @@ def validate_symbol(symbol: str) -> None:
         raise ValueError("Symbol cannot be empty")
 
 
+def load_local_series(path: str) -> pd.Series:
+    """
+    Load a local CSV or Parquet file as a price Series.
+    - Detects date index: uses 'date' column if present, else first column when it looks like dates, else tries index.
+    - Detects price column: one of ['close','adj_close','adj close','Close','Adj Close','price','Price'].
+    Returns a Series indexed by datetime.
+    """
+    if not path or not os.path.exists(path):
+        raise FileNotFoundError(f"Local file not found: {path}")
+
+    ext = os.path.splitext(path)[1].lower()
+    if ext in [".parquet", ".pq", ".parq"]:
+        df = pd.read_parquet(path)
+    elif ext in [".csv", ".txt"]:
+        df = pd.read_csv(path)
+    else:
+        raise ValueError(f"Unsupported file type for local series: {ext}")
+
+    # Normalize columns
+    cols_lower = {c: str(c).lower() for c in df.columns}
+    # Determine datetime index
+    if "date" in cols_lower.values():
+        date_col = [c for c, lc in cols_lower.items() if lc == "date"][0]
+        df[date_col] = pd.to_datetime(df[date_col])
+        df = df.set_index(date_col)
+    elif df.shape[1] >= 1:
+        # Try first column as date if convertible
+        first_col = df.columns[0]
+        try:
+            df[first_col] = pd.to_datetime(df[first_col])
+            df = df.set_index(first_col)
+        except Exception:
+            # Assume index is already datetime-like
+            df.index = pd.to_datetime(df.index)
+
+    df = df.sort_index()
+
+    # Find price/close column
+    price_candidates = [
+        "close",
+        "adj_close",
+        "adj close",
+        "price",
+        "last",
+        "settle",
+    ]
+    chosen = None
+    for c in df.columns:
+        lc = str(c).lower()
+        if lc in price_candidates or "close" in lc or "price" in lc:
+            chosen = c
+            break
+    if chosen is None:
+        # If a single column, take it
+        if df.shape[1] == 1:
+            chosen = df.columns[0]
+        else:
+            raise ValueError(f"Could not detect price/close column in {path}. Columns: {list(df.columns)}")
+
+    s = df[chosen].astype(float).copy()
+    s.name = chosen
+    # Dropna and forward-fill small gaps
+    if s.isna().any():
+        s = s.ffill()
+    # De-tz if any
+    if getattr(s.index, "tz", None) is not None:
+        s.index = s.index.tz_localize(None)
+    return s
+
+
 def download_daily(
-    symbol: str, start: str, end: str, max_retries: int = 3, retry_delay: float = 1.0
+    symbol: str,
+    start: str,
+    end: str,
+    max_retries: int = 3,
+    retry_delay: float = 1.0,
+    local_path: Optional[str] = None,
 ) -> pd.Series:
     """
-    Download daily price data for a symbol from Yahoo Finance with comprehensive logging and retry logic.
+    Download daily price data for a symbol.
 
+    Priority:
+      1) If local_path is provided (or available via environment variables), try loading CSV/Parquet locally.
+      2) Fallback to Yahoo Finance download with retries.
+
+    Env support:
+      - If local_path is None, will check environment variables:
+          FX_LOCAL_PATH / COMD_LOCAL_PATH when called for FX/Commodity upstream
+          YF_LOCAL_PATH as a generic fallback (single path)
     Args:
         symbol: Financial instrument symbol (e.g., "USDCAD=X", "CL=F").
         start: Start date in "YYYY-MM-DD" format.
         end: End date in "YYYY-MM-DD" format.
         max_retries: Maximum number of retry attempts for failed downloads.
         retry_delay: Delay between retry attempts in seconds.
+        local_path: Optional path to CSV/Parquet file to load locally.
 
     Returns:
         pandas Series with daily close prices, indexed by date.
-
-    Raises:
-        ValueError: If symbol is invalid, date range is invalid, or data cannot be downloaded.
-        ConnectionError: If unable to connect to Yahoo Finance after retries.
     """
-    logger.info(f"Starting download for symbol: {symbol}, date range: {start} to {end}")
+    logger.info(f"Starting load for symbol: {symbol}, date range: {start} to {end}")
 
     # Validate inputs
     validate_symbol(symbol)
@@ -56,63 +137,66 @@ def download_daily(
     validate_date_format(end)
 
     if start >= end:
-        raise ValueError(
-            f"Invalid date range: start ({start}) must be before end ({end})"
-        )
+        raise ValueError(f"Invalid date range: start ({start}) must be before end ({end})")
 
     # Clean symbol
     symbol = symbol.strip().upper()
 
+    # Local path resolution via environment, only if not explicitly provided
+    if not local_path:
+        # Generic single local file path fallback
+        local_env = os.getenv("YF_LOCAL_PATH")
+        if local_env and local_env.strip():
+            local_path = local_env.strip()
+
+    # Try local first if provided
+    if local_path:
+        try:
+            logger.info(f"Attempting local load for {symbol} from: {local_path}")
+            local_series = load_local_series(local_path)
+            # Slice by date
+            local_series = local_series.loc[
+                (local_series.index >= pd.to_datetime(start)) & (local_series.index <= pd.to_datetime(end))
+            ]
+            if not local_series.empty:
+                local_series.name = local_series.name or symbol
+                logger.success(f"Loaded {len(local_series)} rows locally for {symbol}")
+                return local_series
+            else:
+                logger.warning(f"Local file provided for {symbol} but yielded 0 rows in range; falling back to Yahoo")
+        except Exception as e:
+            logger.warning(f"Local load failed for {symbol} from {local_path}: {e}. Falling back to Yahoo")
+
+    # Fallback to Yahoo
     for attempt in range(max_retries + 1):
         try:
-            logger.debug(
-                f"Download attempt {attempt + 1}/{max_retries + 1} for {symbol}"
-            )
+            logger.debug(f"Download attempt {attempt + 1}/{max_retries + 1} for {symbol}")
 
-            # Download data
             ticker = yf.Ticker(symbol)
             data = ticker.history(start=start, end=end)
 
             if data.empty:
-                logger.warning(
-                    f"No data found for symbol {symbol} in range {start} to {end}"
-                )
-                raise ValueError(
-                    f"No data found for symbol {symbol} in the specified date range"
-                )
+                logger.warning(f"No data found for symbol {symbol} in range {start} to {end}")
+                raise ValueError(f"No data found for symbol {symbol} in the specified date range")
 
-            # Validate data structure
             if "Close" not in data.columns:
-                logger.error(
-                    f"Invalid data structure for {symbol}: missing 'Close' column"
-                )
-                raise ValueError(
-                    f"Invalid data structure for {symbol}: missing required columns"
-                )
+                logger.error(f"Invalid data structure for {symbol}: missing 'Close' column")
+                raise ValueError(f"Invalid data structure for {symbol}: missing required columns")
 
-            # Extract close prices
             close_prices = data["Close"].copy()
 
-            # Log data quality metrics
             logger.info(f"Downloaded {len(close_prices)} data points for {symbol}")
-            logger.debug(
-                f"Date range: {close_prices.index.min()} to {close_prices.index.max()}"
-            )
+            logger.debug(f"Date range: {close_prices.index.min()} to {close_prices.index.max()}")
             logger.debug(f"Missing values: {close_prices.isna().sum()}")
 
-            # Handle missing values
             if close_prices.isna().any():
-                logger.warning(
-                    f"Found {close_prices.isna().sum()} missing values in {symbol}, filling forward"
-                )
+                logger.warning(f"Found {close_prices.isna().sum()} missing values in {symbol}, filling forward")
                 close_prices = close_prices.fillna(method="ffill")
 
-            # Remove timezone information if present
-            if close_prices.index.tz is not None:
+            if getattr(close_prices.index, "tz", None) is not None:
                 close_prices.index = close_prices.index.tz_localize(None)
                 logger.debug("Removed timezone information from index")
 
-            # Validate final data
             if close_prices.empty:
                 raise ValueError("No valid data points after processing")
 
@@ -127,9 +211,7 @@ def download_daily(
                 time.sleep(retry_delay)
                 retry_delay *= 1.5  # Exponential backoff
             else:
-                logger.error(
-                    f"Failed to download data for {symbol} after {max_retries + 1} attempts: {e}"
-                )
+                logger.error(f"Failed to download data for {symbol} after {max_retries + 1} attempts: {e}")
                 if "Connection" in str(e) or "Timeout" in str(e):
                     raise ConnectionError(f"Unable to connect to Yahoo Finance: {e}")
                 else:
@@ -218,6 +300,8 @@ def download_and_align_pair(
     comd_name: Optional[str] = None,
     max_retries: int = 3,
     retry_delay: float = 1.0,
+    fx_local_path: Optional[str] = None,
+    comd_local_path: Optional[str] = None,
 ) -> pd.DataFrame:
     """
     Download and align FX and commodity data for a pair with comprehensive logging and validation.
@@ -231,13 +315,11 @@ def download_and_align_pair(
         comd_name: Optional name for commodity series (defaults to comd_symbol).
         max_retries: Maximum retry attempts for failed downloads.
         retry_delay: Delay between retry attempts in seconds.
+        fx_local_path: Optional local CSV/Parquet path for FX time series. If provided, used before Yahoo.
+        comd_local_path: Optional local CSV/Parquet path for commodity. If provided, used before Yahoo.
 
     Returns:
         DataFrame with aligned FX and commodity data.
-
-    Raises:
-        ValueError: If inputs are invalid or data cannot be aligned.
-        ConnectionError: If unable to connect to data sources.
     """
     logger.info(f"Starting pair download: {fx_symbol} vs {comd_symbol}")
     logger.info(f"Date range: {start} to {end}")
@@ -249,9 +331,7 @@ def download_and_align_pair(
     validate_date_format(end)
 
     if start >= end:
-        raise ValueError(
-            f"Invalid date range: start ({start}) must be before end ({end})"
-        )
+        raise ValueError(f"Invalid date range: start ({start}) must be before end ({end})")
 
     # Clean symbols
     fx_symbol = fx_symbol.strip().upper()
@@ -261,17 +341,25 @@ def download_and_align_pair(
     fx_name = fx_name or fx_symbol
     comd_name = comd_name or comd_symbol
 
+    # Environment fallback for local paths if not explicitly provided
+    if not fx_local_path:
+        fx_local_path = os.getenv("FX_LOCAL_PATH") or fx_local_path
+    if not comd_local_path:
+        comd_local_path = os.getenv("COMD_LOCAL_PATH") or comd_local_path
+
     try:
-        # Download individual series
-        logger.info(f"Downloading FX data: {fx_symbol}")
-        fx_series = download_daily(fx_symbol, start, end, max_retries, retry_delay)
+        logger.info(f"Loading FX data: {fx_symbol}")
+        fx_series = download_daily(
+            fx_symbol, start, end, max_retries, retry_delay, local_path=fx_local_path
+        )
         fx_series.name = fx_name
 
-        logger.info(f"Downloading commodity data: {comd_symbol}")
-        comd_series = download_daily(comd_symbol, start, end, max_retries, retry_delay)
+        logger.info(f"Loading commodity data: {comd_symbol}")
+        comd_series = download_daily(
+            comd_symbol, start, end, max_retries, retry_delay, local_path=comd_local_path
+        )
         comd_series.name = comd_name
 
-        # Log download results
         logger.info(
             f"FX data: {len(fx_series)} points from {fx_series.index.min()} to {fx_series.index.max()}"
         )
@@ -279,27 +367,20 @@ def download_and_align_pair(
             f"Commodity data: {len(comd_series)} points from {comd_series.index.min()} to {comd_series.index.max()}"
         )
 
-        # Align series
         aligned_data = align_series(fx_series, comd_series)
 
-        # Final validation
         if aligned_data.empty:
             raise ValueError("No valid data points after alignment")
 
-        # Log final results
         logger.info("Successfully downloaded and aligned pair")
         logger.info(f"Final dataset: {len(aligned_data)} data points")
-        logger.info(
-            f"Date range: {aligned_data.index.min()} to {aligned_data.index.max()}"
-        )
+        logger.info(f"Date range: {aligned_data.index.min()} to {aligned_data.index.max()}")
         logger.debug(f"Columns: {list(aligned_data.columns)}")
 
         return aligned_data
 
     except Exception as e:
-        logger.error(
-            f"Error downloading and aligning pair {fx_symbol} vs {comd_symbol}: {e}"
-        )
+        logger.error(f"Error downloading and aligning pair {fx_symbol} vs {comd_symbol}: {e}")
         raise
 
 

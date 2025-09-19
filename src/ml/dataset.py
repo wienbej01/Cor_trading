@@ -37,13 +37,31 @@ logger = logging.getLogger(__name__)
 class DatasetBuilder:
     """Builds ML datasets for trade filter training."""
 
-    def __init__(self, pair: str, schema: Optional[MLSchema] = None, min_history: int = 60):
+    def __init__(
+        self,
+        pair: str,
+        schema: Optional[MLSchema] = None,
+        min_history: int = 60,
+        fx_path: Optional[str] = None,
+        comd_path: Optional[str] = None,
+    ):
+        """
+        Args:
+            pair: logical pair key (used to resolve symbols from config)
+            schema: MLSchema with LabelSpec and FeatureSpec
+            min_history: minimum bars required per-signal for features
+            fx_path: optional local CSV/Parquet path for FX prices (fallback before Yahoo)
+            comd_path: optional local CSV/Parquet path for Commodity prices (fallback before Yahoo)
+        """
         self.pair = pair
         self.schema = schema or MLSchema()
         self.data = None
         self.spread_data = None
         # Minimum bars of history required for feature computation per signal
         self.min_history = int(min_history)
+        # Optional local file fallbacks
+        self.fx_path = fx_path
+        self.comd_path = comd_path
 
     def load_data(self, start_date: str, end_date: str) -> pd.DataFrame:
         """Load and prepare raw data for the pair."""
@@ -59,7 +77,14 @@ class DatasetBuilder:
                 raise ValueError(f"Pair configuration for '{self.pair}' missing 'fx_symbol' or 'comd_symbol'")
  
             # Download and align the two series (returns a DataFrame)
-            aligned = download_and_align_pair(fx_symbol, comd_symbol, start_date, end_date)
+            aligned = download_and_align_pair(
+                fx_symbol,
+                comd_symbol,
+                start_date,
+                end_date,
+                fx_local_path=self.fx_path,
+                comd_local_path=self.comd_path,
+            )
  
             # Aligned is a DataFrame with two columns: FX and commodity
             fx_series = aligned.iloc[:, 0].copy()
@@ -109,6 +134,8 @@ class DatasetBuilder:
             data['spread_returns'] = spread.pct_change()
  
             self.data = data
+            # Diagnostic counters
+            logger.info(f"total_rows_loaded={len(data)}")
             logger.info(f"Loaded {len(data)} data points")
             return data
  
@@ -141,11 +168,15 @@ class DatasetBuilder:
         candidate_signals['entry_price'] = self.data.loc[candidate_signals.index, 'spread']
 
         logger.info(f"Generated {len(candidate_signals)} candidate signals")
+        logger.info(f"candidate_signals_count={len(candidate_signals)}")
+        if len(candidate_signals) == 0:
+            logger.error("Zero-sample outcome: candidate_signals_count dropped to 0")
         return candidate_signals
 
     def compute_features(self, signals_df: pd.DataFrame) -> pd.DataFrame:
         """Compute all features for each signal."""
         logger.info("Computing features")
+        logger.info(f"features_candidates={len(signals_df)}")
 
         if self.data is None:
             raise ValueError("Data not loaded")
@@ -216,6 +247,8 @@ class DatasetBuilder:
 
         if not features_records:
             logger.info("No features computed (insufficient history for all candidate signals)")
+            logger.info("features_passing_min_history=0")
+            logger.error("Zero-sample outcome: features_passing_min_history dropped to 0")
             return pd.DataFrame()
 
         features_df = pd.DataFrame.from_dict(features_records, orient='index')
@@ -223,6 +256,7 @@ class DatasetBuilder:
         features_df.index = pd.to_datetime(features_df.index)
         features_df = features_df.sort_index()
         logger.info(f"Computed features for {len(features_df)} signals")
+        logger.info(f"features_passing_min_history={len(features_df)}")
         return features_df
 
     def create_labels(self, signals_df: pd.DataFrame) -> pd.Series:
@@ -268,6 +302,7 @@ class DatasetBuilder:
 
         labels_series = pd.Series(labels, index=signals_df.index)
         logger.info(f"Created {labels_series.sum()} positive labels out of {len(labels_series)}")
+        logger.info(f"labels_created={len(labels_series)}")
         return labels_series
 
     def apply_temporal_filters(self, features_df: pd.DataFrame, labels: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
@@ -283,6 +318,9 @@ class DatasetBuilder:
                 valid_indices.append(idx)
                 if labels.loc[idx] == 1:  # Only embargo after positive labels
                     last_label_idx = idx
+        logger.info(f"after_embargo={len(valid_indices)}")
+        if len(valid_indices) == 0:
+            logger.error("Zero-sample outcome: after_embargo dropped to 0")
 
         # Purge: Remove overlapping samples within purge window
         final_indices = []
@@ -299,6 +337,9 @@ class DatasetBuilder:
         filtered_labels = labels.loc[final_indices]
 
         logger.info(f"Temporal filtering: {len(filtered_features)} samples remaining")
+        logger.info(f"after_purge={len(filtered_features)}")
+        if len(filtered_features) == 0:
+            logger.error("Zero-sample outcome: after_purge dropped to 0")
         return filtered_features, filtered_labels
 
     def balance_classes(self, features_df: pd.DataFrame, labels: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
@@ -344,6 +385,9 @@ class DatasetBuilder:
             int(len(balanced_labels) - balanced_labels.sum()),
             int(len(balanced_labels)),
         )
+        logger.info(f"after_balance={len(balanced_labels)}")
+        if len(balanced_labels) == 0:
+            logger.error("Zero-sample outcome: after_balance dropped to 0")
         return balanced_features, balanced_labels
 
     def build_dataset(self, start_date: str, end_date: str, z_threshold: float = 2.0) -> Tuple[pd.DataFrame, pd.Series]:
@@ -352,11 +396,13 @@ class DatasetBuilder:
         self.load_data(start_date, end_date)
 
         if self.data is None or len(self.data) == 0:
+            logger.error("Zero-sample outcome: total_rows_loaded dropped to 0")
             raise ValueError(f"No data available for pair '{self.pair}' in the provided date range")
 
         # Generate signals
         signals = self.generate_candidate_signals(z_threshold)
         if signals.empty:
+            logger.error("Zero-sample outcome: candidate_signals_count dropped to 0")
             raise ValueError(
                 f"No candidate signals generated for pair '{self.pair}'. "
                 f"Available rows: {len(self.data)}. Try expanding the date range or reducing the z_threshold."
@@ -365,6 +411,7 @@ class DatasetBuilder:
         # Compute features
         features = self.compute_features(signals)
         if features.empty:
+            logger.error("Zero-sample outcome: features_passing_min_history dropped to 0")
             raise ValueError(
                 f"No features computed for pair '{self.pair}'. "
                 f"Candidate signals: {len(signals)}. Feature engineering requires >=60 bars history per signal."
@@ -377,6 +424,7 @@ class DatasetBuilder:
         # Apply temporal filters
         features, labels = self.apply_temporal_filters(features, labels)
         if len(features) == 0:
+            logger.error("Zero-sample outcome: after_purge/after_embargo dropped to 0")
             raise ValueError("No samples remaining after temporal filtering")
 
         # Balance classes
@@ -396,11 +444,20 @@ class DatasetBuilder:
         if n == 0:
             raise ValueError("No samples to save in dataset")
 
-        # Ensure at least 1 sample in train; if n > 1, ensure at least 1 in val as well
+        # Keep existing behavior when n == 1 (train=1, val=0)
         if n == 1:
             split_idx = 1
         else:
-            split_idx = max(1, min(n - 1, int(n * 0.8)))
+            # Compute initial split (80/20 time-ordered)
+            split_idx = int(n * 0.8)
+            # Protective branch: guarantee at least 1 row in both splits when n >= 2
+            if split_idx == 0 or split_idx == n:
+                adjusted = max(1, min(n - 1, split_idx))
+                logger.warning(
+                    "Adjusted split index from %d to %d to ensure non-empty train/val (n=%d)",
+                    split_idx, adjusted, n
+                )
+                split_idx = adjusted
 
         train_features = features.iloc[:split_idx]
         train_labels = labels.iloc[:split_idx]
@@ -430,6 +487,53 @@ class DatasetBuilder:
         logger.info(f"Val: {len(val_features)} samples")
 
 
+def synth_bootstrap(n: int, random_state: Optional[int] = None) -> Tuple[pd.DataFrame, pd.Series]:
+    """
+    Create a synthetic bootstrap dataset with feature columns consistent with compute_features output
+    and a binary label with ~35% positives.
+
+    This is used only as a last-resort fallback when real data yields zero samples and --use-synth is passed.
+    Deterministic via numpy RandomState(random_state). Index aligned between X and y.
+    """
+    rng = np.random.RandomState(seed=random_state)
+
+    # Reasonable distributions and correlations
+    df = pd.DataFrame({
+        "spread_z_20": rng.normal(0, 1, n),
+        "spread_z_60": rng.normal(0, 1, n),
+        "spread_momentum_5": rng.normal(0, 0.5, n),
+        "spread_momentum_20": rng.normal(0, 1.0, n),
+        "spread_vol_20": np.abs(rng.normal(0.02, 0.01, n)) * np.sqrt(252),
+        "spread_vol_60": np.abs(rng.normal(0.02, 0.01, n)) * np.sqrt(252),
+        "fx_vol_20": np.abs(rng.normal(0.01, 0.005, n)) * np.sqrt(252),
+        "comd_vol_20": np.abs(rng.normal(0.015, 0.007, n)) * np.sqrt(252),
+        "rolling_corr_20": np.clip(rng.normal(0.2, 0.3, n), -1, 1),
+        "rolling_corr_60": np.clip(rng.normal(0.2, 0.3, n), -1, 1),
+    })
+    # corr_z_score derived roughly from rolling_corr_20 vs noisy long window stats
+    corr_mean = 0.2
+    corr_std = 0.25
+    df["corr_z_score"] = (df["rolling_corr_20"] - corr_mean) / (corr_std if corr_std != 0 else 1.0)
+
+    # Regimes as categorical integers
+    df["trend_regime"] = rng.randint(-1, 2, n)  # -1,0,1 (high exclusive)
+    df["vol_regime"] = rng.randint(0, 3, n)     # 0,1,2
+    df["combined_regime"] = df["trend_regime"] + df["vol_regime"]
+
+    # Temporal features with deterministic business day index
+    idx = pd.date_range("2000-01-03", periods=n, freq="B")
+    df["day_of_week"] = idx.weekday
+    df["month_of_year"] = idx.month
+    df["quarter"] = ((idx.month - 1) // 3) + 1
+    df.index = idx
+
+    # Labels ~35% positives, aligned to index
+    positives = rng.rand(n) < 0.35
+    y = pd.Series(positives.astype(int), index=df.index)
+
+    return df, y
+
+
 def main():
     parser = argparse.ArgumentParser(description="Build ML dataset for trade filter")
     parser.add_argument('--pair', required=True, help='Trading pair')
@@ -443,6 +547,11 @@ def main():
     parser.add_argument('--purge-window', type=int, default=20, help='Purge window (bars) to avoid overlapping label horizons')
     parser.add_argument('--output', default='data/ml', help='Output directory')
     parser.add_argument('--dry-run', action='store_true', help='Build dataset but do not save parquet files (debug mode)')
+    # New optional CLI args for local data and synthetic fallback
+    parser.add_argument('--fx-path', default=None, help='Optional local CSV/Parquet path for FX prices (fallback before Yahoo)')
+    parser.add_argument('--comd-path', default=None, help='Optional local CSV/Parquet path for Commodity prices (fallback before Yahoo)')
+    parser.add_argument('--use-synth', action='store_true', help='Allow synthetic bootstrap if real-data pipeline yields 0 samples')
+    parser.add_argument('--synth-n', type=int, default=500, help='Number of synthetic samples to generate when --use-synth is set')
 
     args = parser.parse_args()
 
@@ -457,9 +566,55 @@ def main():
     )
     schema = MLSchema(label_spec=label_spec)
 
-    # Build dataset
-    builder = DatasetBuilder(args.pair, schema, min_history=args.min_history)
-    features, labels = builder.build_dataset(args.start, args.end, z_threshold=args.z_threshold)
+    # Build dataset (real-data pipeline)
+    features: Optional[pd.DataFrame] = None
+    labels: Optional[pd.Series] = None
+
+    builder = DatasetBuilder(
+        args.pair,
+        schema,
+        min_history=args.min_history,
+        fx_path=args.fx_path,
+        comd_path=args.comd_path,
+    )
+
+    real_pipeline_error: Optional[Exception] = None
+    try:
+        features, labels = builder.build_dataset(args.start, args.end, z_threshold=args.z_threshold)
+    except Exception as e:
+        real_pipeline_error = e
+        logger.error(f"Real-data pipeline failed: {e}")
+
+    f_n = 0 if features is None else int(len(features))
+    l_n = 0 if labels is None else int(len(labels))
+
+    # Synthetic bootstrap fallback when enabled and real-data pipeline yields empty features or labels
+    if f_n == 0 or l_n == 0:
+        logger.info("Final dataset from real-data pipeline is empty "
+                    f"(features={f_n}, labels={l_n})")
+        if args.use_synth:
+            seed = schema.seed  # deterministic seed for reproducibility
+            logger.warning(f"Using synthetic bootstrap fallback (--use-synth). seed={seed}, n={args.synth_n}")
+            features, labels = synth_bootstrap(n=args.synth_n, random_state=seed)
+
+            # Verify alignment and non-empty
+            if features is None or labels is None:
+                logger.error("Synthetic fallback returned None for features or labels")
+                sys.exit(1)
+            if not isinstance(labels, pd.Series):
+                labels = pd.Series(labels, index=features.index)
+            if features.shape[0] != labels.shape[0] or features.shape[0] == 0:
+                logger.error("Synthetic fallback failed to produce aligned, non-empty dataset "
+                             f"(features={features.shape[0]}, labels={labels.shape[0]})")
+                sys.exit(1)
+
+            logger.info(f"Synthetic dataset generated: total={len(labels)}, positives={int(labels.sum())}")
+        else:
+            # Preserve previous exception if any for context
+            msg = "Final sample count is 0. Re-run with --use-synth to enable synthetic bootstrap."
+            if real_pipeline_error is not None:
+                raise RuntimeError(f"{msg} Root cause: {real_pipeline_error}") from real_pipeline_error
+            raise RuntimeError(msg)
 
     # Dry-run mode: summarize and exit without writing files
     if args.dry_run:
@@ -470,6 +625,17 @@ def main():
             logger.info(f"Sample feature head:\n{features.head().to_string()}")
         logger.info(f"Final labels: {len(labels)} samples, positives={int(labels.sum()) if len(labels)>0 else 0}")
         return
+
+    # Final guard before saving: ensure non-empty and aligned
+    if features is None or labels is None:
+        logger.error("features or labels is None before saving - aborting")
+        sys.exit(1)
+    if len(features) == 0 or len(labels) == 0:
+        logger.error("features or labels has 0 rows before saving - aborting")
+        sys.exit(1)
+    if features.shape[0] != labels.shape[0]:
+        logger.error(f"features/labels size mismatch before saving: X={features.shape[0]}, y={labels.shape[0]}")
+        sys.exit(1)
 
     # Save
     output_dir = os.path.join(args.output, args.pair)
