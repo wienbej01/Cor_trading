@@ -6,6 +6,10 @@ import pandas as pd
 
 import numpy as np
 
+import json
+import os
+from datetime import datetime
+
 def calculate_equity_stats(equity_curve: pd.Series) -> dict:
     """Calculates equity statistics."""
     if equity_curve.empty:
@@ -93,8 +97,102 @@ def calculate_trade_stats(trades: pd.DataFrame) -> dict:
 
 def calculate_per_day_stats(daily_returns: pd.Series) -> dict:
     """Calculates per-day statistics."""
-    pass
+    if daily_returns.empty:
+        return {
+            "best_day": 0.0,
+            "worst_day": 0.0,
+            "avg_daily_return": 0.0,
+            "daily_volatility": 0.0,
+            "positive_days": 0,
+            "negative_days": 0,
+            "daily_win_rate": 0.0,
+        }
+
+    best_day = daily_returns.max()
+    worst_day = daily_returns.min()
+    avg_daily_return = daily_returns.mean()
+    daily_volatility = daily_returns.std()
+    positive_days = (daily_returns > 0).sum()
+    negative_days = (daily_returns < 0).sum()
+    daily_win_rate = positive_days / len(daily_returns) if len(daily_returns) > 0 else 0.0
+
+    return {
+        "best_day": best_day,
+        "worst_day": worst_day,
+        "avg_daily_return": avg_daily_return,
+        "daily_volatility": daily_volatility,
+        "positive_days": positive_days,
+        "negative_days": negative_days,
+        "daily_win_rate": daily_win_rate,
+    }
 
 def calculate_cost_slippage_stats(trades: pd.DataFrame) -> dict:
     """Calculates cost and slippage statistics."""
-    pass
+    if trades.empty or "pnl" not in trades.columns or "cost" not in trades.columns:
+        return {
+            "total_costs": 0.0,
+            "costs_per_trade": 0.0,
+            "costs_pct_of_pnl": 0.0,
+        }
+
+    total_costs = trades["cost"].sum()
+    total_pnl = trades["pnl"].sum()
+    costs_per_trade = total_costs / len(trades) if len(trades) > 0 else 0.0
+    costs_pct_of_pnl = total_costs / total_pnl if total_pnl != 0 else 0.0
+
+    return {
+        "total_costs": total_costs,
+        "costs_per_trade": costs_per_trade,
+        "costs_pct_of_pnl": costs_pct_of_pnl,
+    }
+
+def generate_run_id() -> str:
+    """Generates a unique run ID based on the current timestamp."""
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+def save_run_artifacts(
+    pair: str,
+    backtest_df: pd.DataFrame,
+    trades_df: pd.DataFrame,
+    config: dict,
+    metrics: dict,
+    run_id: str,
+) -> str:
+    """Saves backtest artifacts to the reports directory."""
+    reports_path = f"reports/{pair}/{run_id}"
+    os.makedirs(reports_path, exist_ok=True)
+
+    # Save summary
+    summary_path = os.path.join(reports_path, "summary.json")
+    with open(summary_path, "w") as f:
+        json.dump(metrics, f, indent=4)
+
+    # Save trades
+    trades_path = os.path.join(reports_path, "trades.parquet")
+    trades_df.to_parquet(trades_path)
+
+    # Save config
+    config_path = os.path.join(reports_path, "config.json")
+    with open(config_path, "w") as f:
+        json.dump(config, f, indent=4)
+
+    return reports_path
+
+def calculate_comprehensive_metrics(backtest_df: pd.DataFrame, trades_df: pd.DataFrame, config: dict) -> dict:
+    """Calculates a comprehensive set of metrics for a backtest run."""
+    equity_curve = backtest_df["equity"]
+    daily_returns = backtest_df["pnl"]
+
+    equity_stats = calculate_equity_stats(equity_curve)
+    trade_stats = calculate_trade_stats(trades_df)
+    per_day_stats = calculate_per_day_stats(daily_returns)
+    cost_slippage_stats = calculate_cost_slippage_stats(trades_df)
+
+    return {
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "equity": equity_stats,
+        "trades": trade_stats,
+        "daily": per_day_stats,
+        "costs": cost_slippage_stats,
+        "config": config,
+    }
